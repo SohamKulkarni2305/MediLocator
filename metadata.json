@@ -1,0 +1,6 @@
+{
+  "name": "MediLocator",
+  "description": "Production-grade multi-tenant generic medicine marketplace with salt-composition matching, prescription verification workstation, regulatory compliance console, and doorstep delivery tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
