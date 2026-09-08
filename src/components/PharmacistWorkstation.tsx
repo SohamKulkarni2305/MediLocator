@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Currency, PharmacistCase } from '../types';
 import { PHARMACIST_CASES } from '../data/mockData';
+import { usePrescription } from '../context/PrescriptionContext';
 
 interface PharmacistWorkstationProps {
   currency: Currency;
@@ -13,6 +14,7 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
   onNavigateToTracking,
   onNavigateToAdmin,
 }) => {
+  const { updatePrescriptionStatus } = usePrescription();
   const [activeCaseIndex, setActiveCaseIndex] = useState(0);
   const [attestationChecked, setAttestationChecked] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -59,6 +61,8 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
         timestamp,
       },
     }));
+    // Sync with patient's prescription status to trigger notification toast
+    updatePrescriptionStatus('rx-hist-3', 'approved');
     showToast('Prescription Approved & Dispatched to Store Dispense. Tamper seal generated.', 'success');
   };
 
@@ -72,6 +76,14 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
         timestamp,
       },
     }));
+    const reasonMap: Record<string, string> = {
+      BLURRY_IMAGE: 'Document optical capture is blurry or signature is unreadable',
+      EXPIRED_DATE: 'Prescription valid cycle has exceeded legal 30-day duration',
+      CONTROLLED_SUBSTANCE: 'Schedule X medicine requires physical paper verification at dispensing counter',
+      INCOMPLETE_REGISTRATION: 'Doctor registration credentials could not be verified in MCI/NMC registry',
+    };
+    // Sync with patient's prescription status to trigger notification toast
+    updatePrescriptionStatus('rx-hist-3', 'rejected', reasonMap[rejectReason] || rejectReason);
     showToast(`Prescription rejected with code "${rejectReason}". Patient notified for re-upload.`, 'error');
   };
 
@@ -81,6 +93,8 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
       delete updated[activeCase.id];
       return updated;
     });
+    // Reset to pending so it can be verified or rejected again
+    updatePrescriptionStatus('rx-hist-3', 'pending');
     showToast(`Decision reverted for ${activeCase.caseNumber}. Returned to pending review.`, 'info');
   };
 

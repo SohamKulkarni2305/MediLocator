@@ -13,6 +13,8 @@ import { CustomerPrescription } from './components/CustomerPrescription';
 import { CustomerTracking } from './components/CustomerTracking';
 import { CustomerAccount } from './components/CustomerAccount';
 import { ArchitectureBlueprint } from './components/ArchitectureBlueprint';
+import { PrescriptionProvider } from './context/PrescriptionContext';
+import { PrescriptionNotificationToast } from './components/PrescriptionNotificationToast';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ActiveScreen>('admin-console');
@@ -96,42 +98,50 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col font-sans">
-      {/* Universal Screen Switcher & Controls */}
-      <NavigationHeader
-        currentScreen={currentScreen}
-        onSelectScreen={setCurrentScreen}
-        currency={currency}
-        onToggleCurrency={toggleCurrency}
-        isMobileFrame={isMobileFrame}
-        onToggleMobileFrame={toggleMobileFrame}
-      />
+    <PrescriptionProvider>
+      <div className="min-h-screen bg-slate-900 flex flex-col font-sans relative">
+        {/* Universal Screen Switcher & Controls */}
+        <NavigationHeader
+          currentScreen={currentScreen}
+          onSelectScreen={setCurrentScreen}
+          currency={currency}
+          onToggleCurrency={toggleCurrency}
+          isMobileFrame={isMobileFrame}
+          onToggleMobileFrame={toggleMobileFrame}
+        />
 
-      {/* Screen Presentation Container */}
-      <div className="flex-1 flex flex-col">
-        {isCustomerScreen && isMobileFrame ? (
-          <div className="flex-1 bg-slate-950 py-8 px-4 flex items-center justify-center">
-            {/* Realistic Smartphone Mockup Frame */}
-            <div className="w-full max-w-[420px] bg-slate-900 rounded-[44px] p-3 shadow-2xl ring-1 ring-slate-800 border-4 border-slate-700 relative">
-              {/* Phone Speaker & Dynamic Island */}
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-50 flex items-center justify-end px-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-800"></div>
+        {/* Floating Prescription Verification Toast Alert System */}
+        <PrescriptionNotificationToast
+          onNavigateToPrescription={() => setCurrentScreen('customer-prescription')}
+          onNavigateToAccount={() => setCurrentScreen('customer-account')}
+        />
+
+        {/* Screen Presentation Container */}
+        <div className="flex-1 flex flex-col">
+          {isCustomerScreen && isMobileFrame ? (
+            <div className="flex-1 bg-slate-950 py-8 px-4 flex items-center justify-center">
+              {/* Realistic Smartphone Mockup Frame */}
+              <div className="w-full max-w-[420px] bg-slate-900 rounded-[44px] p-3 shadow-2xl ring-1 ring-slate-800 border-4 border-slate-700 relative">
+                {/* Phone Speaker & Dynamic Island */}
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-50 flex items-center justify-end px-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-800"></div>
+                </div>
+
+                {/* Screen Inner Viewport */}
+                <div className="bg-slate-50 rounded-[34px] overflow-hidden max-h-[820px] overflow-y-auto scrollbar-none pt-7">
+                  {renderScreen()}
+                </div>
+
+                {/* Bottom Home Indicator Bar */}
+                <div className="w-32 h-1 bg-slate-600 rounded-full mx-auto my-2"></div>
               </div>
-
-              {/* Screen Inner Viewport */}
-              <div className="bg-slate-50 rounded-[34px] overflow-hidden max-h-[820px] overflow-y-auto scrollbar-none pt-7">
-                {renderScreen()}
-              </div>
-
-              {/* Bottom Home Indicator Bar */}
-              <div className="w-32 h-1 bg-slate-600 rounded-full mx-auto my-2"></div>
             </div>
-          </div>
-        ) : (
-          <div className="flex-1">{renderScreen()}</div>
-        )}
+          ) : (
+            <div className="flex-1">{renderScreen()}</div>
+          )}
+        </div>
       </div>
-    </div>
+    </PrescriptionProvider>
   );
 }
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Currency, PharmacyKYC, AuditLedgerEntry } from '../types';
 import { INITIAL_KYC_QUEUE, INITIAL_AUDIT_LOGS, ORANGE_BOOK_DATA } from '../data/mockData';
 import { PharmacopeiaModal, AuditPackageModal } from './Modals';
+import { RegulatoryComplianceConsole } from './RegulatoryComplianceConsole';
 
 interface AdminConsoleProps {
   currency: Currency;
@@ -12,6 +13,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currency,
   onNavigateToWorkstation,
 }) => {
+  const [adminTab, setAdminTab] = useState<'compliance' | 'operations'>('compliance');
   const [kycList, setKycList] = useState<PharmacyKYC[]>(INITIAL_KYC_QUEUE);
   const [auditLogs, setAuditLogs] = useState<AuditLedgerEntry[]>(INITIAL_AUDIT_LOGS);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -266,10 +268,57 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Sub-Navigation Tabs */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              onClick={() => setAdminTab('compliance')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                adminTab === 'compliance'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base text-sky-400">stacked_line_chart</span>
+              <span>Regulatory Compliance Console</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/30 text-sky-300 ml-0.5">
+                D3 Throughput &amp; Anomalies
+              </span>
+            </button>
+
+            <button
+              onClick={() => setAdminTab('operations')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                adminTab === 'operations'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base text-emerald-400">domain_verification</span>
+              <span>Operations, KYC &amp; Orange Book</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 ml-0.5">
+                PostgreSQL RLS
+              </span>
+            </button>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-500 pb-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>21 CFR Part 11 Enforced</span>
+          </div>
+        </div>
       </section>
 
       {/* MAIN CONTENT CONTAINER */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+        {adminTab === 'compliance' ? (
+          <RegulatoryComplianceConsole
+            currency={currency}
+            onNavigateToWorkstation={onNavigateToWorkstation}
+          />
+        ) : (
+          <>
         {/* 3. METRICS KPI STRIP (4 DISTINCT CARDS) */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Prescription Cost Savings */}
@@ -733,6 +782,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </table>
           </div>
         </section>
+        </>
+        )}
       </main>
 
       {/* Interactive Toast Notification */}

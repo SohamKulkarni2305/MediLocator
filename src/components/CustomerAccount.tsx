@@ -6,6 +6,7 @@ import {
   DEFAULT_USER_PROFILE,
   UserProfileDetails,
 } from './EditProfileModal';
+import { PrescriptionHistorySection } from './PrescriptionHistorySection';
 
 interface CustomerAccountProps {
   currency: Currency;
@@ -479,58 +480,12 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
           </div>
         </div>
 
-        {/* Prescription Repository */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-headline font-bold text-slate-900 text-sm">
-                Prescription Repository
-              </h3>
-              <p className="text-[11px] text-slate-500">2 Active digital prescriptions on file</p>
-            </div>
-            <button
-              onClick={onNavigateToPrescription}
-              className="text-[11px] font-semibold text-sky-700 hover:underline flex items-center gap-0.5 cursor-pointer"
-            >
-              <span>View All</span>
-              <span className="material-symbols-outlined text-xs">arrow_forward</span>
-            </button>
-          </div>
-
-          {/* Prescription File Card */}
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-900 text-white flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-xl">description</span>
-              </div>
-              <div>
-                <div className="font-bold text-slate-900 text-xs truncate max-w-[180px] sm:max-w-[260px]">
-                  Rx-Cardio-Metabolic-202...
-                </div>
-                <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                  <span className="material-symbols-outlined text-xs text-emerald-600">verified</span>
-                  <span>Dr. Arvind Mehta • Valid till Dec 2026</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => showToast('Downloading digital copy of Rx...')}
-                className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 transition cursor-pointer"
-                title="Download Prescription"
-              >
-                <span className="material-symbols-outlined text-base">download</span>
-              </button>
-              <button
-                onClick={onNavigateToPrescription}
-                className="px-3 py-1.5 rounded-lg bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs shadow-2xs transition cursor-pointer"
-              >
-                View
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Prescription History & Digital Vault */}
+        <PrescriptionHistorySection
+          currency={currency}
+          onNavigateToUpload={onNavigateToPrescription}
+          onShowToast={showToast}
+        />
 
         {/* Settings & Care Vault */}
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-2">
