@@ -26,6 +26,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
     { id: 'customer-search', label: 'Customer: Search & Compare', icon: 'search', category: 'Patient' },
     { id: 'customer-prescription', label: 'Customer: Rx Gate & OCR', icon: 'description', category: 'Patient' },
     { id: 'customer-tracking', label: 'Customer: Order Tracking', icon: 'delivery_dining', category: 'Patient' },
+    { id: 'customer-account', label: 'Customer: Health Vault & Account', icon: 'account_circle', category: 'Patient' },
     { id: 'architecture-blueprint', label: 'Architecture Blueprint', icon: 'account_tree', category: 'System Spec' },
   ];
 

@@ -2,17 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Currency } from '../types';
 import { INITIAL_ORDER_TRACKING } from '../data/mockData';
 import { InvoiceModal } from './Modals';
+import { CustomerBottomNav } from './CustomerBottomNav';
 
 interface CustomerTrackingProps {
   currency: Currency;
   onNavigateToSearch: () => void;
   onNavigateToWorkstation?: () => void;
+  onNavigateToPrescription?: () => void;
+  onNavigateToAccount?: () => void;
 }
 
 export const CustomerTracking: React.FC<CustomerTrackingProps> = ({
   currency,
   onNavigateToSearch,
   onNavigateToWorkstation,
+  onNavigateToPrescription,
+  onNavigateToAccount,
 }) => {
   const [tracking] = useState(INITIAL_ORDER_TRACKING);
   const [distance, setDistance] = useState(450);
@@ -44,9 +49,19 @@ export const CustomerTracking: React.FC<CustomerTrackingProps> = ({
             <span className="material-symbols-outlined text-sm">home</span>
             <span>Home</span>
           </button>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-xs font-mono font-bold text-slate-900">{tracking.orderId}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs font-mono font-bold text-slate-900">{tracking.orderId}</span>
+            </div>
+
+            <button
+              onClick={onNavigateToAccount}
+              className="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center cursor-pointer transition shadow-2xs ml-1"
+              title="Patient Profile & Health Vault"
+            >
+              <span className="material-symbols-outlined text-sm">person</span>
+            </button>
           </div>
         </div>
       </div>
@@ -294,6 +309,15 @@ export const CustomerTracking: React.FC<CustomerTrackingProps> = ({
         isOpen={isInvoiceOpen}
         onClose={() => setIsInvoiceOpen(false)}
         currency={currency}
+      />
+
+      {/* Persistent Customer Bottom Nav */}
+      <CustomerBottomNav
+        activeTab="orders"
+        onNavigateToSearch={onNavigateToSearch}
+        onNavigateToPrescription={onNavigateToPrescription || (() => {})}
+        onNavigateToTracking={() => {}}
+        onNavigateToAccount={onNavigateToAccount || (() => {})}
       />
     </div>
   );

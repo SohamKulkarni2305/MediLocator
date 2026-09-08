@@ -11,6 +11,7 @@ import { PharmacistWorkstation } from './components/PharmacistWorkstation';
 import { CustomerSearch } from './components/CustomerSearch';
 import { CustomerPrescription } from './components/CustomerPrescription';
 import { CustomerTracking } from './components/CustomerTracking';
+import { CustomerAccount } from './components/CustomerAccount';
 import { ArchitectureBlueprint } from './components/ArchitectureBlueprint';
 
 export default function App() {
@@ -51,6 +52,7 @@ export default function App() {
             currency={currency}
             onNavigateToPrescription={() => setCurrentScreen('customer-prescription')}
             onNavigateToTracking={() => setCurrentScreen('customer-tracking')}
+            onNavigateToAccount={() => setCurrentScreen('customer-account')}
           />
         );
       case 'customer-prescription':
@@ -59,6 +61,7 @@ export default function App() {
             currency={currency}
             onNavigateToTracking={() => setCurrentScreen('customer-tracking')}
             onNavigateToSearch={() => setCurrentScreen('customer-search')}
+            onNavigateToAccount={() => setCurrentScreen('customer-account')}
           />
         );
       case 'customer-tracking':
@@ -67,6 +70,17 @@ export default function App() {
             currency={currency}
             onNavigateToSearch={() => setCurrentScreen('customer-search')}
             onNavigateToWorkstation={() => setCurrentScreen('pharmacist-workstation')}
+            onNavigateToPrescription={() => setCurrentScreen('customer-prescription')}
+            onNavigateToAccount={() => setCurrentScreen('customer-account')}
+          />
+        );
+      case 'customer-account':
+        return (
+          <CustomerAccount
+            currency={currency}
+            onNavigateToSearch={() => setCurrentScreen('customer-search')}
+            onNavigateToPrescription={() => setCurrentScreen('customer-prescription')}
+            onNavigateToTracking={() => setCurrentScreen('customer-tracking')}
           />
         );
       case 'architecture-blueprint':

@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { Currency } from '../types';
 import { ClinicalProofModal } from './Modals';
+import { CustomerBottomNav } from './CustomerBottomNav';
 
 interface CustomerSearchProps {
   currency: Currency;
   onNavigateToPrescription: () => void;
   onNavigateToTracking?: () => void;
+  onNavigateToAccount?: () => void;
 }
 
 export const CustomerSearch: React.FC<CustomerSearchProps> = ({
   currency,
   onNavigateToPrescription,
+  onNavigateToTracking,
+  onNavigateToAccount,
 }) => {
   const [selectedStrength, setSelectedStrength] = useState('10mg');
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
@@ -43,7 +47,28 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
                 MetroCare Pharmacy #104 (1.2 km away)
               </span>
             </div>
-            <span className="hidden sm:inline font-mono text-[11px] text-slate-400">18-30 min doorstep delivery</span>
+            
+            {/* Header Right Actions */}
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline font-mono text-[11px] text-slate-400 mr-2">18-30 min doorstep delivery</span>
+              <button
+                onClick={onNavigateToTracking}
+                className="relative p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                title="View Orders / Cart"
+              >
+                <span className="material-symbols-outlined text-base">shopping_bag</span>
+                <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center border border-white">
+                  2
+                </span>
+              </button>
+              <button
+                onClick={onNavigateToAccount}
+                className="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center cursor-pointer transition shadow-2xs"
+                title="Patient Profile & Health Vault"
+              >
+                <span className="material-symbols-outlined text-sm">person</span>
+              </button>
+            </div>
           </div>
 
           {/* Search bar */}
@@ -278,6 +303,15 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({
       <ClinicalProofModal
         isOpen={isProofModalOpen}
         onClose={() => setIsProofModalOpen(false)}
+      />
+
+      {/* Persistent Customer Bottom Nav */}
+      <CustomerBottomNav
+        activeTab="search"
+        onNavigateToSearch={() => {}}
+        onNavigateToPrescription={onNavigateToPrescription}
+        onNavigateToTracking={onNavigateToTracking || (() => {})}
+        onNavigateToAccount={onNavigateToAccount || (() => {})}
       />
     </div>
   );

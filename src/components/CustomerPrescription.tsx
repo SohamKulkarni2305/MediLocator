@@ -1,77 +1,121 @@
 import React, { useState } from 'react';
 import { Currency } from '../types';
+import { CustomerBottomNav } from './CustomerBottomNav';
+import {
+  PrescriptionUploadSimulator,
+  UploadedRxData,
+  SAMPLE_PRESCRIPTIONS,
+} from './PrescriptionUploadSimulator';
 
 interface CustomerPrescriptionProps {
   currency: Currency;
   onNavigateToTracking: () => void;
   onNavigateToSearch: () => void;
+  onNavigateToAccount?: () => void;
 }
 
 export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
   currency,
   onNavigateToTracking,
   onNavigateToSearch,
+  onNavigateToAccount,
 }) => {
-  const [hasUploaded, setHasUploaded] = useState(true); // default to true so users see the rich prescription match right away, but can re-upload
+  const [currentRx, setCurrentRx] = useState<UploadedRxData | null>(SAMPLE_PRESCRIPTIONS.cardio);
+  const [hasUploaded, setHasUploaded] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [authorized, setAuthorized] = useState(true);
-  const [useGeneric1, setUseGeneric1] = useState(true);
-  const [useGeneric2, setUseGeneric2] = useState(true);
-  const [fileName, setFileName] = useState('rx_rajesh_sharma_sep2026.pdf');
+  const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
+  const [genericChoices, setGenericChoices] = useState<Record<string, boolean>>({
+    'med-1': true,
+    'med-2': true,
+    'med-3': true,
+    'med-4': true,
+    'med-5': true,
+    'med-6': true,
+  });
 
   const getPrice = (usd: number, inr: number) => {
     return currency === 'USD' ? `$${usd.toFixed(2)}` : `₹${inr.toFixed(2)}`;
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-      setIsScanning(true);
-      setTimeout(() => {
-        setIsScanning(false);
-        setHasUploaded(true);
-      }, 1200);
-    }
+  const handlePrescriptionSelected = (rxData: UploadedRxData) => {
+    setCurrentRx(rxData);
+    setHasUploaded(true);
+    // Initialize default generic selections for newly loaded medicines
+    const newChoices = { ...genericChoices };
+    rxData.medicines.forEach((med) => {
+      if (newChoices[med.id] === undefined) {
+        newChoices[med.id] = true;
+      }
+    });
+    setGenericChoices(newChoices);
   };
 
-  const handleLoadSample = () => {
-    setIsScanning(true);
-    setFileName('rx_rajesh_sharma_cardio_diabetic.pdf');
-    setTimeout(() => {
-      setIsScanning(false);
-      setHasUploaded(true);
-    }, 900);
+  const handleResetUpload = () => {
+    setCurrentRx(null);
+    setHasUploaded(false);
   };
 
-  // Price calculations
-  const price1 = useGeneric1 ? 11.50 : 42.00;
-  const price1Inr = useGeneric1 ? 115.00 : 420.00;
+  const toggleGeneric = (medId: string, value: boolean) => {
+    setGenericChoices((prev) => ({ ...prev, [medId]: value }));
+  };
 
-  const price2 = useGeneric2 ? 7.20 : 28.00;
-  const price2Inr = useGeneric2 ? 72.00 : 280.00;
+  // Dynamic Price Calculations based on currentRx medicines
+  const activeMedicines = currentRx ? currentRx.medicines : [];
+  
+  const totalPriceUSD = activeMedicines.reduce((sum, med) => {
+    const isGen = genericChoices[med.id] ?? true;
+    return sum + (isGen ? med.genericPriceUSD : med.brandedPriceUSD);
+  }, 0);
 
-  const totalPrice = price1 + price2;
-  const totalPriceInr = price1Inr + price2Inr;
+  const totalPriceINR = activeMedicines.reduce((sum, med) => {
+    const isGen = genericChoices[med.id] ?? true;
+    return sum + (isGen ? med.genericPriceINR : med.brandedPriceINR);
+  }, 0);
 
-  const brandedTotal = 42.00 + 28.00;
-  const brandedTotalInr = 420.00 + 280.00;
+  const brandedTotalUSD = activeMedicines.reduce((sum, med) => sum + med.brandedPriceUSD, 0);
+  const brandedTotalINR = activeMedicines.reduce((sum, med) => sum + med.brandedPriceINR, 0);
 
-  const savings = (currency === 'USD' ? brandedTotal : brandedTotalInr) - (currency === 'USD' ? totalPrice : totalPriceInr);
+  const billedAmount = currency === 'USD' ? totalPriceUSD : totalPriceINR;
+  const originalBrandedAmount = currency === 'USD' ? brandedTotalUSD : brandedTotalINR;
+  const directSavings = Math.max(0, originalBrandedAmount - billedAmount);
+  const savingsPercent = originalBrandedAmount > 0 ? ((directSavings / originalBrandedAmount) * 100).toFixed(1) : '0';
 
   return (
-    <div className="bg-slate-50 min-h-screen text-slate-800 font-sans pb-16">
+    <div className="bg-slate-50 min-h-screen text-slate-800 font-sans pb-20">
       {/* Top Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-10 z-30">
+      <div className="bg-white border-b border-slate-200 sticky top-10 z-30 shadow-2xs">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={onNavigateToSearch}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>
             <span>Back to Drug Search</span>
           </button>
-          <div className="text-xs font-mono font-medium text-slate-500">
-            Dispensary: <strong className="text-slate-800">MetroCare Pharmacy #104</strong>
+          <div className="flex items-center gap-3">
+            <div className="text-xs font-mono font-medium text-slate-500 hidden sm:block">
+              Dispensary: <strong className="text-slate-800">MetroCare Pharmacy #104</strong>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onNavigateToTracking}
+                className="relative p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+                title="View Orders / Cart"
+              >
+                <span className="material-symbols-outlined text-base">shopping_bag</span>
+                <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center border border-white">
+                  2
+                </span>
+              </button>
+              <button
+                onClick={onNavigateToAccount}
+                className="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center cursor-pointer transition shadow-2xs"
+                title="Patient Profile & Health Vault"
+              >
+                <span className="material-symbols-outlined text-sm">person</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -87,188 +131,115 @@ export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
               Prescription Ingest &amp; Salt Match
             </span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-slate-400">
-            <span>Next: Pharmacist Signoff</span>
-            <span>•</span>
-            <span>Doorstep Delivery</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span className="text-sky-700 font-semibold">1. Upload/Scan</span>
+            <span>→</span>
+            <span>2. Pharmacist Signoff</span>
+            <span>→</span>
+            <span>3. Doorstep Delivery</span>
           </div>
         </div>
 
-        {/* Upload Dropzone */}
-        <div className="bg-white border-2 border-dashed border-slate-300 hover:border-sky-500 rounded-2xl p-6 text-center transition">
-          <input
-            type="file"
-            id="rx-file-input"
-            onChange={handleFileUpload}
-            className="hidden"
-            accept="image/*,.pdf"
-          />
-          <label htmlFor="rx-file-input" className="cursor-pointer flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-2xl">cloud_upload</span>
-            </div>
-            <div>
-              <span className="text-sm font-bold text-slate-900">
-                Click to upload or drag &amp; drop prescription
-              </span>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Supports JPG, PNG, PDF (Up to 25MB) • Camera Capture Supported
-              </p>
-            </div>
-          </label>
+        {/* Prescription File Picker & Camera Scanner Simulator */}
+        <PrescriptionUploadSimulator
+          onPrescriptionSelected={handlePrescriptionSelected}
+          isScanning={isScanning}
+          setIsScanning={setIsScanning}
+          currentRx={currentRx}
+          onReset={handleResetUpload}
+        />
 
-          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-xs text-slate-400">Want to test with sample Rx?</span>
-            <button
-              onClick={handleLoadSample}
-              className="text-xs font-semibold text-sky-600 hover:text-sky-700 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-200 transition"
-            >
-              Load Sample Rx (Dr. Arvind Mehta - Cardiology)
-            </button>
-          </div>
-        </div>
-
-        {/* Scanning Spinner */}
-        {isScanning && (
-          <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3 animate-in fade-in duration-200">
-            <span className="material-symbols-outlined text-4xl text-sky-600 animate-spin">refresh</span>
-            <h3 className="font-bold text-slate-900 text-sm">
-              Analyzing Prescription with Autonomous OCR Diagnostics...
-            </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Extracting doctor registration, active ingredients (INN), strengths, and validating FDA Orange Book bioequivalence equivalents.
-            </p>
-          </div>
-        )}
-
-        {/* Prescription Extracted Details */}
-        {hasUploaded && !isScanning && (
-          <div className="space-y-6">
-            {/* OCR Success Banner */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-emerald-600 text-2xl">task_alt</span>
-                <div>
-                  <h4 className="font-bold text-xs text-emerald-950">
-                    Prescription Analyzed (Confidence: 99.2%)
-                  </h4>
-                  <div className="text-[11px] text-emerald-700">
-                    File: <strong className="font-mono">{fileName}</strong> • Prescriber: Dr. Arvind Mehta (Reg #88219)
-                  </div>
-                </div>
-              </div>
-              <span className="text-[11px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-bold">
-                2 Medicines Identified
-              </span>
-            </div>
-
+        {/* Prescription Extracted Details & Generic Substitution Engine */}
+        {hasUploaded && !isScanning && currentRx && (
+          <div className="space-y-6 animate-in fade-in duration-300">
             {/* Extracted Medicines Card */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="font-headline font-bold text-slate-900 text-sm">
-                  Detected Medicines &amp; Recommended Generic Substitutions
-                </h3>
-                <span className="text-xs text-slate-500">Toggle to customize selection</span>
-              </div>
-
-              {/* Item 1: Lipitor / Atorvastatin */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-semibold text-slate-500">Prescribed:</div>
-                    <div className="font-bold text-slate-800 text-sm">
-                      Tab. Lipitor 10mg (Atorvastatin Calcium)
-                    </div>
-                    <div className="text-xs text-slate-400">1 tab daily at bedtime x 30 days</div>
-                  </div>
-
-                  <div className="flex items-center gap-3 self-start sm:self-center">
-                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
-                      <input
-                        type="checkbox"
-                        checked={useGeneric1}
-                        onChange={(e) => setUseGeneric1(e.target.checked)}
-                        className="rounded text-sky-600 focus:ring-sky-500"
-                      />
-                      <span className="text-xs font-bold text-slate-800">
-                        {useGeneric1 ? 'Use Bioequivalent Generic' : 'Dispense Branded'}
-                      </span>
-                    </label>
-                  </div>
+                <div>
+                  <h3 className="font-headline font-bold text-slate-900 text-sm">
+                    Detected Medicines &amp; Bioequivalent Substitutions
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Extracted from <span className="font-mono text-slate-700 font-semibold">{currentRx.fileName}</span>
+                  </p>
                 </div>
 
-                {useGeneric1 ? (
-                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="font-bold text-emerald-950 flex items-center gap-1">
-                        <span>Atorvastatin 10mg Tablet (Cipla Ltd)</span>
-                        <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
-                      </div>
-                      <div className="text-emerald-700 text-[11px]">
-                        Same chemical entity • US-FDA AB Rated bioequivalence
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-extrabold text-slate-900 text-sm">{getPrice(11.50, 115.00)}</span>
-                      <span className="text-emerald-700 font-bold block text-[11px]">Save {getPrice(30.50, 305.00)}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-3 bg-slate-100 rounded-lg text-xs flex justify-between">
-                    <span className="text-slate-600">Dispensing original branded Lipitor 10mg (Pfizer)</span>
-                    <span className="font-bold text-slate-900">{getPrice(42.00, 420.00)}</span>
-                  </div>
-                )}
+                <button
+                  onClick={() => setIsDocViewerOpen(true)}
+                  className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold border border-sky-200 transition cursor-pointer flex items-center gap-1"
+                  title="View Prescriber Notations"
+                >
+                  <span className="material-symbols-outlined text-sm">visibility</span>
+                  <span>View Full Rx</span>
+                </button>
               </div>
 
-              {/* Item 2: Glucophage / Metformin */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs font-semibold text-slate-500">Prescribed:</div>
-                    <div className="font-bold text-slate-800 text-sm">
-                      Tab. Glucophage 500mg ER (Metformin HCl)
-                    </div>
-                    <div className="text-xs text-slate-400">1 tab twice daily after meals x 60 tabs</div>
-                  </div>
+              {/* Dynamic Line Items */}
+              <div className="space-y-3">
+                {activeMedicines.map((med) => {
+                  const isGeneric = genericChoices[med.id] ?? true;
+                  const itemSavings = (currency === 'USD' ? med.brandedPriceUSD : med.brandedPriceINR) -
+                    (currency === 'USD' ? med.genericPriceUSD : med.genericPriceINR);
 
-                  <div className="flex items-center gap-3 self-start sm:self-center">
-                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
-                      <input
-                        type="checkbox"
-                        checked={useGeneric2}
-                        onChange={(e) => setUseGeneric2(e.target.checked)}
-                        className="rounded text-sky-600 focus:ring-sky-500"
-                      />
-                      <span className="text-xs font-bold text-slate-800">
-                        {useGeneric2 ? 'Use Bioequivalent Generic' : 'Dispense Branded'}
-                      </span>
-                    </label>
-                  </div>
-                </div>
+                  return (
+                    <div key={med.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="text-xs font-semibold text-slate-500">Prescribed:</div>
+                          <div className="font-bold text-slate-800 text-sm">
+                            {med.brandedName} ({med.brandedManufacturer})
+                          </div>
+                          <div className="text-xs text-slate-500 font-mono mt-0.5">{med.dosageInstructions}</div>
+                        </div>
 
-                {useGeneric2 ? (
-                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="font-bold text-emerald-950 flex items-center gap-1">
-                        <span>Metformin HCl 500mg ER (Sun Pharma)</span>
-                        <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
+                        <div className="flex items-center gap-3 self-start sm:self-center">
+                          <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+                            <input
+                              type="checkbox"
+                              checked={isGeneric}
+                              onChange={(e) => toggleGeneric(med.id, e.target.checked)}
+                              className="rounded text-sky-600 focus:ring-sky-500"
+                            />
+                            <span className="text-xs font-bold text-slate-800">
+                              {isGeneric ? 'Use Bioequivalent Generic' : 'Dispense Branded'}
+                            </span>
+                          </label>
+                        </div>
                       </div>
-                      <div className="text-emerald-700 text-[11px]">
-                        Same chemical entity • 100% Active Ingredient match
-                      </div>
+
+                      {isGeneric ? (
+                        <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs">
+                          <div>
+                            <div className="font-bold text-emerald-950 flex items-center gap-1">
+                              <span>{med.genericName}</span>
+                              <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
+                            </div>
+                            <div className="text-emerald-700 text-[11px] mt-0.5">
+                              {med.genericManufacturer} • {med.bioequivalentCode}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-extrabold text-slate-900 text-sm">
+                              {getPrice(med.genericPriceUSD, med.genericPriceINR)}
+                            </span>
+                            <span className="text-emerald-700 font-bold block text-[11px]">
+                              Save {currency === 'USD' ? `$${itemSavings.toFixed(2)}` : `₹${itemSavings.toFixed(2)}`}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-slate-100 rounded-lg text-xs flex justify-between items-center">
+                          <span className="text-slate-600">
+                            Dispensing original branded {med.brandedName} ({med.brandedManufacturer})
+                          </span>
+                          <span className="font-bold text-slate-900">
+                            {getPrice(med.brandedPriceUSD, med.brandedPriceINR)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <span className="font-extrabold text-slate-900 text-sm">{getPrice(7.20, 72.00)}</span>
-                      <span className="text-emerald-700 font-bold block text-[11px]">Save {getPrice(20.80, 208.00)}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-3 bg-slate-100 rounded-lg text-xs flex justify-between">
-                    <span className="text-slate-600">Dispensing original branded Glucophage 500mg (Merck)</span>
-                    <span className="font-bold text-slate-900">{getPrice(28.00, 280.00)}</span>
-                  </div>
-                )}
+                  );
+                })}
               </div>
 
               {/* Order Financial Summary */}
@@ -276,15 +247,15 @@ export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-400">Total Billed to Patient:</span>
                   <span className="font-headline font-bold text-xl text-white">
-                    {getPrice(totalPrice, totalPriceInr)}
+                    {getPrice(totalPriceUSD, totalPriceINR)}
                   </span>
                 </div>
 
-                {savings > 0 && (
+                {directSavings > 0 && (
                   <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800 text-emerald-400 font-semibold">
                     <span>Total Direct Consumer Savings:</span>
                     <span className="font-mono text-sm">
-                      -{currency === 'USD' ? `$${savings.toFixed(2)}` : `₹${savings.toFixed(2)}`} (73.2% relief)
+                      -{currency === 'USD' ? `$${directSavings.toFixed(2)}` : `₹${directSavings.toFixed(2)}`} ({savingsPercent}% relief)
                     </span>
                   </div>
                 )}
@@ -309,7 +280,7 @@ export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
               <button
                 onClick={onNavigateToTracking}
                 disabled={!authorized}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-lg">check_circle</span>
                 <span>Confirm &amp; Send to Pharmacist Queue (18m Delivery)</span>
@@ -318,6 +289,118 @@ export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
           </div>
         )}
       </div>
+
+      {/* High-Resolution Prescription Document Inspection Modal */}
+      {isDocViewerOpen && currentRx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+            <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-sky-700 text-xl">description</span>
+                <div>
+                  <h3 className="font-headline font-bold text-slate-900 text-sm">
+                    Verified Medical Prescription Record
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    {currentRx.fileName} • 21 CFR Part 11 Audit Trail
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsDocViewerOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            {/* Simulated Realistic Prescription Document Body */}
+            <div className="p-6 overflow-y-auto bg-amber-50/70 font-sans space-y-4">
+              {/* Doctor Header */}
+              <div className="border-b-2 border-slate-800 pb-3 flex items-start justify-between">
+                <div>
+                  <h2 className="font-serif font-black text-slate-950 text-sm tracking-wide">
+                    {currentRx.clinicName.toUpperCase()}
+                  </h2>
+                  <div className="text-xs font-bold text-sky-900 mt-0.5">{currentRx.doctorName}</div>
+                  <div className="text-[10px] text-slate-600 font-mono">
+                    Registration No: {currentRx.doctorReg}
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-lg border-2 border-slate-900 flex items-center justify-center font-serif font-black text-slate-900 text-lg">
+                  ℞
+                </div>
+              </div>
+
+              {/* Patient Meta */}
+              <div className="grid grid-cols-2 gap-2 text-[11px] py-2 border-b border-slate-300 font-mono text-slate-800">
+                <div>
+                  Patient: <strong>Rajesh Sharma</strong> (58/M)
+                </div>
+                <div className="text-right">
+                  Date: <strong>{currentRx.date}</strong>
+                </div>
+                <div>
+                  ABHA ID: <strong>91-4820-1940-2219</strong>
+                </div>
+                <div className="text-right text-emerald-800 font-bold">
+                  Status: Valid Schedule H Rx
+                </div>
+              </div>
+
+              {/* Prescription Items */}
+              <div className="py-2 space-y-3">
+                <div className="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider">
+                  Medications Prescribed:
+                </div>
+                {currentRx.medicines.map((med, index) => (
+                  <div key={med.id} className="p-2.5 bg-white/80 rounded-lg border border-slate-300 space-y-1">
+                    <div className="font-bold text-slate-900 text-xs">
+                      {index + 1}. {med.brandedName} ({med.genericName})
+                    </div>
+                    <div className="text-[11px] text-slate-600 font-mono italic">
+                      Sig: {med.dosageInstructions}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Doctor Signature Block & Seal */}
+              <div className="pt-4 flex items-end justify-between border-t border-slate-300">
+                <div className="text-[9px] text-slate-500 font-mono">
+                  <div>DISPENSED VIA METROCARE PHARMACY #104</div>
+                  <div>SECURITY HASH: 0x892a4f...921</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-serif italic text-sm font-bold text-sky-950 border-b border-sky-950 px-4">
+                    Dr. Arvind Mehta
+                  </div>
+                  <div className="text-[9px] font-mono text-slate-600 mt-0.5">Signed Electronically</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 py-3 border-t border-slate-200 bg-white flex justify-end">
+              <button
+                onClick={() => setIsDocViewerOpen(false)}
+                className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer"
+              >
+                Close Inspection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Persistent Customer Bottom Nav */}
+      <CustomerBottomNav
+        activeTab="prescriptions"
+        onNavigateToSearch={onNavigateToSearch}
+        onNavigateToPrescription={() => {}}
+        onNavigateToTracking={onNavigateToTracking}
+        onNavigateToAccount={onNavigateToAccount || (() => {})}
+      />
     </div>
   );
 };
+

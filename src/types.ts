@@ -145,6 +145,7 @@ export type ActiveScreen =
   | 'customer-search'
   | 'customer-prescription'
   | 'customer-tracking'
+  | 'customer-account'
   | 'architecture-blueprint';
 
 export type Currency = 'USD' | 'INR';
