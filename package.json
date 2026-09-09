@@ -8,7 +8,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "server:dev": "tsx watch server/src/index.ts",
+    "server:build": "tsc -p server/tsconfig.json",
+    "db:migrate": "prisma migrate dev --schema=server/prisma/schema.prisma",
+    "db:seed": "tsx server/prisma/seed.ts",
+    "db:studio": "prisma studio --schema=server/prisma/schema.prisma"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
