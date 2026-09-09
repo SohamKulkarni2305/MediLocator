@@ -5,6 +5,14 @@ import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './routes/auth';
+import drugsRoutes from './routes/drugs';
+import prescriptionsRoutes from './routes/prescriptions';
+import pharmaciesRoutes from './routes/pharmacies';
+import casesRoutes from './routes/cases';
+import ordersRoutes from './routes/orders';
+import complianceRoutes from './routes/compliance';
+import aiRoutes from './routes/ai';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -40,16 +48,16 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date() });
 });
 
-// ─── Routes (To be implemented) ───────────────────────────────────────────────
+// ─── Routes ───────────────────────────────────────────────────────────────────
 
-// app.use('/api/auth', authRoutes);
-// app.use('/api/drugs', drugsRoutes);
-// app.use('/api/prescriptions', prescriptionsRoutes);
-// app.use('/api/pharmacies', pharmaciesRoutes);
-// app.use('/api/cases', casesRoutes);
-// app.use('/api/orders', ordersRoutes);
-// app.use('/api/compliance', complianceRoutes);
-// app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/drugs', drugsRoutes);
+app.use('/api/prescriptions', prescriptionsRoutes);
+app.use('/api/pharmacies', pharmaciesRoutes);
+app.use('/api/cases', casesRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/compliance', complianceRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── Error Handling ───────────────────────────────────────────────────────────
 
