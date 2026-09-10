@@ -1,4 +1,4 @@
-# ??? MediLocator — Development Phases
+# ??? MediLocator ï¿½ Development Phases
 
 > This file is **persistent AI context**. It defines the sequential development phases of the MediLocator platform. Each phase builds on the previous and must be completed before the next begins. AI coding assistants should consult this file when planning new features or architectural changes.
 
@@ -10,20 +10,20 @@
 
 | Phase | Name | Status | Priority |
 |-------|------|--------|----------|
-| [Phase 0](#phase-0--prototype--demo-foundation) | Prototype / Demo Foundation | ? Complete | — |
+| [Phase 0](#phase-0--prototype--demo-foundation) | Prototype / Demo Foundation | ? Complete | ï¿½ |
 | [Phase 1](#phase-1--backend-foundation) | Backend Foundation | ?? Pending | ?? High |
 | [Phase 2](#phase-2--real-data-integration) | Real Data Integration | ?? Pending | ?? High |
 | [Phase 3](#phase-3--production-hardening) | Production Hardening | ?? Pending | ?? Medium |
-| [Phase 4](#phase-4--scale--expansion) | Scale & Expansion | ?? Pending | ?? Low |
+| [Phase 4](#phase-4--scale--expansion) | Scale & Expansion | ?? In Progress | ?? Low |
 
 ---
 
-## Phase 0 — Prototype / Demo Foundation
+## Phase 0 ï¿½ Prototype / Demo Foundation
 
-> **Status:** ? Complete · **Version:** `0.1.0` · **Released:** 2026-09-08
+> **Status:** ? Complete ï¿½ **Version:** `0.1.0` ï¿½ **Released:** 2026-09-08
 
 ### Goal
-Build a fully functional frontend prototype demonstrating all three user roles (Admin, Pharmacist, Customer) with mocked data, AI-ready prescription flows, and a compliance dashboard — without any live backend dependency.
+Build a fully functional frontend prototype demonstrating all three user roles (Admin, Pharmacist, Customer) with mocked data, AI-ready prescription flows, and a compliance dashboard ï¿½ without any live backend dependency.
 
 ### Deliverables
 
@@ -37,12 +37,12 @@ Build a fully functional frontend prototype demonstrating all three user roles (
 - [x] Core dependencies: `@google/genai`, `motion`, `lucide-react`, `d3`
 
 #### ? Type System (`src/types.ts`)
-- [x] `DrugItem` — drug formulary with brand/generic dual-currency pricing
-- [x] `PharmacyKYC` — pharmacy onboarding and document verification
-- [x] `AuditLedgerEntry` — immutable audit trail
-- [x] `OrangeBookEntry` — price ceiling database
-- [x] `PharmacistCase` — full case record with molecules and line items
-- [x] `OrderTrackingState` — delivery milestones and courier state
+- [x] `DrugItem` ï¿½ drug formulary with brand/generic dual-currency pricing
+- [x] `PharmacyKYC` ï¿½ pharmacy onboarding and document verification
+- [x] `AuditLedgerEntry` ï¿½ immutable audit trail
+- [x] `OrangeBookEntry` ï¿½ price ceiling database
+- [x] `PharmacistCase` ï¿½ full case record with molecules and line items
+- [x] `OrderTrackingState` ï¿½ delivery milestones and courier state
 - [x] `ActiveScreen`, `Currency` union types
 
 #### ? State Management
@@ -52,36 +52,36 @@ Build a fully functional frontend prototype demonstrating all three user roles (
 - [x] `usePrescription()` custom hook
 
 #### ? Mock Data
-- [x] `src/data/mockData.ts` — drug formulary, KYC records, audit ledger, Orange Book, cases, order tracking
-- [x] `src/data/complianceData.ts` — multi-series compliance KPI time-series
+- [x] `src/data/mockData.ts` ï¿½ drug formulary, KYC records, audit ledger, Orange Book, cases, order tracking
+- [x] `src/data/complianceData.ts` ï¿½ multi-series compliance KPI time-series
 
 #### ? Screens & Components
-- [x] `AdminConsole` — KYC queue, audit ledger, Orange Book viewer
-- [x] `PharmacistWorkstation` — AI-assisted prescription verification
-- [x] `CustomerSearch` — drug search with price comparison
-- [x] `CustomerPrescription` — prescription upload and history
-- [x] `CustomerTracking` — real-time order milestone tracking
-- [x] `CustomerAccount` — patient profile management
+- [x] `AdminConsole` ï¿½ KYC queue, audit ledger, Orange Book viewer
+- [x] `PharmacistWorkstation` ï¿½ AI-assisted prescription verification
+- [x] `CustomerSearch` ï¿½ drug search with price comparison
+- [x] `CustomerPrescription` ï¿½ prescription upload and history
+- [x] `CustomerTracking` ï¿½ real-time order milestone tracking
+- [x] `CustomerAccount` ï¿½ patient profile management
 - [x] `RegulatoryComplianceConsole` + `ComplianceD3LineChart`
-- [x] `PrescriptionNotificationToast` — animated floating toast
-- [x] `NavigationHeader` — global screen switcher with currency toggle
-- [x] `ArchitectureBlueprint` — system architecture visualization
+- [x] `PrescriptionNotificationToast` ï¿½ animated floating toast
+- [x] `NavigationHeader` ï¿½ global screen switcher with currency toggle
+- [x] `ArchitectureBlueprint` ï¿½ system architecture visualization
 
 #### ? Persistent AI Context Files
-- [x] `decisions.md` — technical decision log
-- [x] `memory.md` — long-term project state
-- [x] `changelog.md` — chronological change history
-- [x] `rules.md` — coding and UI standards
-- [x] `phases.md` — this file
+- [x] `decisions.md` ï¿½ technical decision log
+- [x] `memory.md` ï¿½ long-term project state
+- [x] `changelog.md` ï¿½ chronological change history
+- [x] `rules.md` ï¿½ coding and UI standards
+- [x] `phases.md` ï¿½ this file
 
 ---
 
-## Phase 1 — Backend Foundation
+## Phase 1 ï¿½ Backend Foundation
 
-> **Status:** ?? Pending · **Depends on:** Phase 0
+> **Status:** ?? Pending ï¿½ **Depends on:** Phase 0
 
 ### Goal
-Stand up a real backend with a relational database, secure REST API, AI OCR integration, and authentication — replacing the mock data layer with production-grade infrastructure.
+Stand up a real backend with a relational database, secure REST API, AI OCR integration, and authentication ï¿½ replacing the mock data layer with production-grade infrastructure.
 
 ### Deliverables
 
@@ -100,9 +100,9 @@ Stand up a real backend with a relational database, secure REST API, AI OCR inte
 
 #### ?? Authentication (P-002, P-003)
 - [ ] Implement **JWT-based** login / logout / session refresh
-- [ ] `POST /api/auth/login` — supports Admin / Pharmacist / Customer roles
-- [ ] `POST /api/auth/logout` — invalidate refresh token
-- [ ] `GET /api/auth/me` — return current session user
+- [ ] `POST /api/auth/login` ï¿½ supports Admin / Pharmacist / Customer roles
+- [ ] `POST /api/auth/logout` ï¿½ invalidate refresh token
+- [ ] `GET /api/auth/me` ï¿½ return current session user
 - [ ] Role-based access control (RBAC) middleware guards for all API routes
 - [ ] Secure `httpOnly` cookies for token storage
 
@@ -118,8 +118,8 @@ Implement all endpoints defined in `memory.md` Section 5:
 - [ ] Standardized error responses with HTTP status codes
 
 #### ?? Gemini AI OCR Integration (P-004)
-- [ ] Implement `POST /api/ai/ocr` — server-side Gemini multimodal call
-- [ ] Implement `POST /api/ai/match-drugs` — AI-assisted drug matching
+- [ ] Implement `POST /api/ai/ocr` ï¿½ server-side Gemini multimodal call
+- [ ] Implement `POST /api/ai/match-drugs` ï¿½ AI-assisted drug matching
 - [ ] Secure `GEMINI_API_KEY` handling (server-side only, never client-exposed)
 - [ ] Store OCR confidence scores in `prescriptions.ocr_confidence`
 - [ ] Fallback handling for OCR failures (manual entry fallback)
@@ -139,9 +139,9 @@ Implement all endpoints defined in `memory.md` Section 5:
 
 ---
 
-## Phase 2 — Real Data Integration
+## Phase 2 ï¿½ Real Data Integration
 
-> **Status:** ?? Pending · **Depends on:** Phase 1
+> **Status:** ?? Pending ï¿½ **Depends on:** Phase 1
 
 ### Goal
 Replace all mock data imports in the frontend with real API calls. Add loading states, error handling, retry logic, and real-time prescription status updates.
@@ -190,9 +190,9 @@ Replace all mock data imports in the frontend with real API calls. Add loading s
 
 ---
 
-## Phase 3 — Production Hardening
+## Phase 3 ï¿½ Production Hardening
 
-> **Status:** ?? Pending · **Depends on:** Phase 2
+> **Status:** ?? Pending ï¿½ **Depends on:** Phase 2
 
 ### Goal
 Make MediLocator production-ready: tested, compliant, accessible, performant, and deployable to a cloud environment.
@@ -253,9 +253,9 @@ Make MediLocator production-ready: tested, compliant, accessible, performant, an
 
 ---
 
-## Phase 4 — Scale & Expansion
+## Phase 4 ï¿½ Scale & Expansion
 
-> **Status:** ?? Pending · **Depends on:** Phase 3
+> **Status:** ?? In Progress ï¿½ **Depends on:** Phase 3
 
 ### Goal
 Expand MediLocator to handle multi-pharmacy clusters, native mobile platforms, payment processing, real logistics, and regional language support.
@@ -269,26 +269,26 @@ Expand MediLocator to handle multi-pharmacy clusters, native mobile platforms, p
 - [ ] Cluster admin role with scoped permissions
 
 #### ?? Drug Inventory Management (P-010)
-- [ ] Full `inStock` ? inventory CRUD for each pharmacy
+- [x] Full inventory CRUD foundation with low-stock alerts and reorder thresholds
 - [ ] Low-stock alerts for pharmacists
 - [ ] Reorder triggers and supplier management scaffold
 - [ ] Real-time inventory deduction on prescription fulfillment
 
 #### ?? Payment Gateway Integration (P-008)
-- [ ] Integrate **Razorpay** (India) and **Stripe** (international)
+- [x] Provider-neutral payment checkout/refund API foundation for Razorpay and Stripe adapters
 - [ ] Checkout flow: drug selection ? address ? payment ? confirmation
 - [ ] Invoice generation and download (PDF)
 - [ ] Refund and dispute handling scaffold
 - [ ] Payment audit trail in the Admin Console
 
 #### ?? Real Courier / Logistics Tracking (P-012)
-- [ ] Integrate a real logistics API (Delhivery, Shiprocket, or equivalent)
+- [x] Provider-neutral logistics status and webhook API foundation
 - [ ] Live GPS map integration for `CustomerTracking` (Google Maps or Mapbox)
 - [ ] Webhook receiver for courier status updates
 - [ ] Cold-chain IoT sensor data integration (temperature monitoring)
 
 #### ?? Pharmacist Shift Scheduling (P-009)
-- [ ] Shift calendar management for pharmacy managers
+- [x] Shift calendar API foundation with pharmacist assignment and status
 - [ ] SLA escalation routing based on active pharmacist availability
 - [ ] Case assignment and load balancing across shift pharmacists
 
@@ -299,14 +299,14 @@ Expand MediLocator to handle multi-pharmacy clusters, native mobile platforms, p
 - [ ] Biometric authentication (Face ID / Fingerprint) for mobile login
 
 #### ?? Internationalization (P-015)
-- [ ] Set up `i18next` for translation management
-- [ ] Translate all UI strings to **Hindi** (mandatory)
+- [x] Lightweight translation foundation with English/Hindi language persistence
+- [ ] Translate every remaining UI string to **Hindi** (follow-up content pass)
 - [ ] Add **Marathi** and **Tamil** (stretch goal)
 - [ ] RTL layout support (if Arabic or Urdu is added later)
 - [ ] Locale-aware date and number formatting
 
 #### ?? Export & Reports (P-013)
-- [ ] Prescription history PDF export for patients
+- [x] Report summary API foundation and existing compliance export flow
 - [ ] Pharmacist case report exports (CSV / Excel)
 - [ ] Admin compliance report exports with D3 chart snapshots
 - [ ] Scheduled email reports for admin users
@@ -316,6 +316,12 @@ Expand MediLocator to handle multi-pharmacy clusters, native mobile platforms, p
 - Native mobile app is published to App Store and Google Play
 - Payment gateway processes real transactions end-to-end
 - App is fully translated into Hindi with locale-aware formatting
+
+### Current release blockers
+- Real payment processing requires Razorpay/Stripe merchant credentials and webhook secrets.
+- Real courier tracking requires a Delhivery/Shiprocket account and webhook contract.
+- Native publication requires React Native build pipelines, signing credentials, and App Store/Play Console access.
+- Full Hindi coverage requires a content pass across every existing screen, not only the shared navigation controls.
 
 ---
 

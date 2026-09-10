@@ -92,7 +92,8 @@ import { mockDrugs } from '../data/mockData';
 
 ```
 MediLocator/
-├── src/
+├── frontend/
+│   ├── src/
 │   ├── components/       # All UI components (one file per component)
 │   ├── context/          # React context providers and hooks
 │   ├── data/             # Static mock data and seed files
@@ -101,17 +102,21 @@ MediLocator/
 │   ├── App.tsx           # Root component and screen router
 │   ├── main.tsx          # React DOM entry point
 │   └── index.css         # Global styles and Tailwind directives
-├── public/               # Static assets (favicons, images)
+│   └── public/            # Static assets (favicons, images)
+├── backend/
+│   ├── src/               # Express routes, services, middleware
+│   └── prisma/            # Database schema and seed
 ├── decisions.md          # AI context: Technical decisions log
 ├── rules.md              # AI context: Project rules (this file)
 ├── memory.md             # AI context: Long-term project memory
 ├── changelog.md          # AI context: Chronological change history
-├── .env                  # Local secrets (NEVER commit)
-├── .env.example          # Template for required env vars (safe to commit)
+├── frontend/.env         # Browser-safe local variables (NEVER commit)
+├── backend/.env          # Server secrets (NEVER commit)
 ├── .gitignore            # Must include .env
-├── vite.config.ts        # Vite and plugin configuration
-├── tsconfig.json         # TypeScript compiler options
-└── package.json          # Dependencies and scripts
+├── frontend/vite.config.ts
+├── frontend/tsconfig.json
+├── frontend/package.json
+└── backend/package.json
 ```
 
 ### Rules

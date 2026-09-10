@@ -4,5 +4,11 @@ dist/
 coverage/
 .DS_Store
 *.log
+!frontend/.env.example
+!backend/.env.example
 .env*
 !.env.example
+frontend/.env
+backend/.env
+.npm-cache/
+.prisma-tmp/

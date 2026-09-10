@@ -331,3 +331,19 @@ Use the **`motion`** package (v12, formerly Framer Motion) for declarative anima
 - Import from `motion/react` (not `framer-motion`).
 - Use `motion.div`, `AnimatePresence` for animated elements.
 - Keep animations subtle — use `duration: 0.2-0.4s` and `ease: easeOut` as defaults.
+
+---
+
+## D-011: Provider-ready Phase 4 Operations Boundary
+
+| Field | Details |
+|-------|---------|
+| **Date** | 2026-09-09 |
+| **Status** | Accepted |
+| **Decided By** | Project Lead |
+
+### Decision Taken
+Keep payment, courier, inventory operations, scheduling, and report APIs behind the backend `/api/operations` boundary. External providers are integrated through adapters after credentials and webhook contracts are available.
+
+### Reasoning
+This preserves frontend/backend separation and allows local development without exposing provider secrets or coupling the UI to a vendor SDK. The development adapter is intentionally process-local until the corresponding Prisma persistence and provider credentials are supplied.

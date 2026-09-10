@@ -2,7 +2,7 @@
 
 > This file is **persistent AI context**. It represents the long-term memory of the MediLocator project. AI coding assistants should read this file at the start of every session to understand the current state of the project, what has been built, what is pending, and what constraints apply.
 
-> **Last Updated:** 2026-09-08
+> **Last Updated:** 2026-09-09
 
 ---
 
@@ -17,7 +17,30 @@
 The platform bridges India's fragmented pharmaceutical supply chain by introducing price transparency (via an Orange Book equivalent), regulatory compliance dashboards, and real-time prescription tracking — all in a single SPA.
 
 **Target Markets:** India (primary, INR pricing), International (USD pricing)
-**Current Phase:** Prototype / Demo — all data is mocked; no live backend connected.
+**Current Phase:** Phase 4 in progress — MongoDB Atlas is connected through Prisma, the schema is synchronized, and seeded users are available for backend integration.
+
+### Database connection
+- Provider: MongoDB Atlas via Prisma 6.17.0
+- Schema sync: completed with `prisma db push`
+- Seed verification: admin, pharmacist, and customer users created successfully
+- Optional `abhaId` and `mrn` fields use non-unique indexes for MongoDB null semantics
+
+### Phase 3 progress
+- [x] Lazy-loaded route-level screens and production chunk splitting
+- [x] Persisted light/dark theme toggle
+- [x] Debounced D3 chart resize handling
+- [x] Native Node test suite for validation and authentication helpers
+- [x] Frontend lint, backend build, and production build verified
+- [ ] Full component/API test execution (blocked by local Node `uv_os_get_passwd` memory failure)
+- [ ] Regulatory, deployment, and database-backed end-to-end verification
+
+### Phase 4 progress
+- [x] Added cluster filter and cluster-level node metrics to the Admin Console
+- [x] Added mock inventory management with low-stock, expiry, out-of-stock, and reorder workflows
+- [x] Phase 4 provider-ready operations routes for inventory, payments, logistics, shifts, and reports
+- [x] English/Hindi language toggle with local persistence
+- [ ] External payment/logistics credentials, native mobile publication, and full UI translation
+- [x] Added role-aware Admin, Medical/Pharmacist, and Patient/User login with JWT session restore, refresh, logout, and scoped navigation
 
 ---
 

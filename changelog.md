@@ -18,6 +18,26 @@
 
 ## [Unreleased]
 
+### Added
+- React Query API client and mutation/query hooks for the Phase 2 data integration layer
+- Server-Sent Events endpoint and frontend listener for prescription status notifications
+
+### Changed
+- Aligned Prisma CLI and client to 6.17.0, matching the existing schema and backend API
+- Wired the SSE listener into the app while keeping `PrescriptionProvider` as the outermost wrapper
+
+### Fixed
+- Resolved TypeScript errors across Zod validation, Gemini response handling, chart statistics, and prescription context typing
+- Verified frontend lint, backend compilation, and production Vite build
+- Added native Node test coverage for request schemas and authentication helpers
+- Added lazy-loaded screen chunks, persisted theme switching, and debounced D3 chart resizing
+- Started Phase 4 with multi-pharmacy cluster filtering and cluster-level Admin Console metrics
+- Added cluster-aware mock inventory management with stock alerts and reorder actions
+- Added provider-ready operations APIs for inventory, payment checkout/refunds, logistics webhooks, pharmacist shifts, and report summaries
+- Added persistent English/Hindi language toggle in the frontend navigation
+- Added working role-aware login screens for Admin, Medical/Pharmacist, and Patient/User accounts
+- Connected Prisma to MongoDB Atlas, synchronized collections/indexes, and verified seed users
+
 > Features merged to `main` but not yet versioned / deployed.
 
 ### Added
