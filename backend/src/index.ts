@@ -16,6 +16,7 @@ import complianceRoutes from './routes/compliance';
 import aiRoutes from './routes/ai';
 import eventsRoutes from './routes/events';
 import operationsRoutes from './routes/operations';
+import { prisma } from './lib/prisma';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -47,8 +48,24 @@ app.use('/api/ai', strictLimiter);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date() });
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$runCommandRaw({ ping: 1 });
+    res.json({
+      status: 'ok',
+      database: 'connected',
+      uptime: process.uptime(),
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    console.error('[Health Check] Database unavailable', error);
+    res.status(503).json({
+      status: 'degraded',
+      database: 'disconnected',
+      uptime: process.uptime(),
+      timestamp: new Date(),
+    });
+  }
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
