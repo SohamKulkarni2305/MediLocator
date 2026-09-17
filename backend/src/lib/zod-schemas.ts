@@ -11,6 +11,7 @@ export const RegisterSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().trim().email('Invalid email address').transform((value) => value.toLowerCase()),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  role: z.enum(['CUSTOMER', 'PHARMACIST']).default('CUSTOMER'),
   phone: z.string().trim().min(7, 'Enter a valid phone number').max(20).optional(),
   abhaId: z.string().trim().max(50).optional(),
 });

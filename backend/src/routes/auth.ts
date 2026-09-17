@@ -9,7 +9,7 @@ const router = Router();
 
 router.post('/register', validateRequest(RegisterSchema), async (req, res, next) => {
   try {
-    const { name, email, password, phone, abhaId } = req.body;
+    const { name, email, password, role, phone, abhaId } = req.body;
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ error: { code: 'EMAIL_EXISTS', message: 'An account with this email already exists. Please sign in.' } });
@@ -20,7 +20,7 @@ router.post('/register', validateRequest(RegisterSchema), async (req, res, next)
         name,
         email,
         passwordHash: await hashPassword(password),
-        role: 'CUSTOMER',
+        role,
         phone: phone || undefined,
         abhaId: abhaId || undefined,
       },

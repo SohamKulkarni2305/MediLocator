@@ -48,7 +48,7 @@ The API runs on `http://localhost:3001`.
 
 ## Authentication
 
-The frontend provides separate options for existing-user login and new-user sign-up. New users provide a name, email, password, and optional phone/ABHA ID; the backend creates them as customer accounts and signs them in immediately. Admin and pharmacist accounts are provisioned separately and can use the existing-user login.
+The frontend provides separate options for existing-user login and new-user sign-up. New users provide a name, email, password, and optional phone/ABHA ID, then choose a patient or pharmacist account; the backend signs them in immediately. Admin accounts are provisioned separately.
 
 The database seed is intentionally empty, so no predefined credentials or patient data are created by `npm run db:seed`.
 

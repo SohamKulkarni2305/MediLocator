@@ -43,7 +43,9 @@ describe('request validation schemas', () => {
       name: 'New Patient',
       email: 'patient@example.com',
       password: 'SecurePass!123',
+      role: 'CUSTOMER',
     });
+    assert.equal(RegisterSchema.parse({ name: 'A Pharmacist', email: 'pharmacist@example.com', password: 'SecurePass!123', role: 'PHARMACIST' }).role, 'PHARMACIST');
     assert.throws(() => RegisterSchema.parse({ name: 'A', email: 'bad', password: 'short' }));
   });
 });
