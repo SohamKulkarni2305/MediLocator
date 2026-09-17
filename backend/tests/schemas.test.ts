@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   ApprovePrescriptionSchema,
   DrugSearchSchema,
+  RegisterSchema,
   RejectPrescriptionSchema,
 } from '../src/lib/zod-schemas';
 
@@ -31,5 +32,18 @@ describe('request validation schemas', () => {
       pharmacistName: 'A. Kumar',
       pharmacistLicense: 'KA-123',
     });
+  });
+
+  it('validates and normalizes new customer registration data', () => {
+    assert.deepEqual(RegisterSchema.parse({
+      name: '  New Patient ',
+      email: ' PATIENT@EXAMPLE.COM ',
+      password: 'SecurePass!123',
+    }), {
+      name: 'New Patient',
+      email: 'patient@example.com',
+      password: 'SecurePass!123',
+    });
+    assert.throws(() => RegisterSchema.parse({ name: 'A', email: 'bad', password: 'short' }));
   });
 });

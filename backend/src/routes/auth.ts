@@ -2,10 +2,45 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { hashPassword, verifyPassword, signAccessToken, signRefreshToken, verifyToken } from '../services/authService';
 import { validateRequest } from '../middleware/validate';
-import { LoginSchema, RefreshTokenSchema } from '../lib/zod-schemas';
+import { LoginSchema, RefreshTokenSchema, RegisterSchema } from '../lib/zod-schemas';
 import { requireAuth } from '../middleware/auth';
 
 const router = Router();
+
+router.post('/register', validateRequest(RegisterSchema), async (req, res, next) => {
+  try {
+    const { name, email, password, phone, abhaId } = req.body;
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ error: { code: 'EMAIL_EXISTS', message: 'An account with this email already exists. Please sign in.' } });
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        passwordHash: await hashPassword(password),
+        role: 'CUSTOMER',
+        phone: phone || undefined,
+        abhaId: abhaId || undefined,
+      },
+    });
+    const payload = { userId: user.id, email: user.email, role: user.role };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+    await prisma.refreshSession.create({
+      data: { userId: user.id, token: refreshToken, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+    });
+
+    res.status(201).json({
+      accessToken,
+      refreshToken,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, abhaId: user.abhaId, phone: user.phone, mrn: user.mrn },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/login', validateRequest(LoginSchema), async (req, res, next) => {
   try {

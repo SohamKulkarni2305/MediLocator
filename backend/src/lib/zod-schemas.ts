@@ -3,8 +3,16 @@ import { z } from 'zod';
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const LoginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().trim().email('Invalid email address').transform((value) => value.toLowerCase()),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+export const RegisterSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().trim().email('Invalid email address').transform((value) => value.toLowerCase()),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  phone: z.string().trim().min(7, 'Enter a valid phone number').max(20).optional(),
+  abhaId: z.string().trim().max(50).optional(),
 });
 
 export const RefreshTokenSchema = z.object({
@@ -81,6 +89,7 @@ export const DrugMatchSchema = z.object({
 // ─── Type Exports ─────────────────────────────────────────────────────────────
 
 export type LoginInput = z.infer<typeof LoginSchema>;
+export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type DrugSearchInput = z.infer<typeof DrugSearchSchema>;
 export type PrescriptionUploadInput = z.infer<typeof PrescriptionUploadSchema>;
 export type RejectPrescriptionInput = z.infer<typeof RejectPrescriptionSchema>;

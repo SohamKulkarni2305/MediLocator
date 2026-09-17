@@ -15,25 +15,34 @@ export interface AuthUser {
 
 interface AuthScreenProps { onAuthenticated: (user: AuthUser) => void; }
 
-const roleCopy: Record<AuthRole, { label: string; description: string; email: string }> = {
-  ADMIN: { label: 'Admin', description: 'Authority Console and pharmacy oversight', email: 'admin@medilocator.com' },
-  PHARMACIST: { label: 'Medical / Pharmacist', description: 'Prescription verification and case workstation', email: 'pharmacist@medilocator.com' },
-  CUSTOMER: { label: 'Patient / User', description: 'Search, upload prescriptions, and track orders', email: 'customer@medilocator.com' },
+const roleCopy: Record<AuthRole, { label: string; description: string }> = {
+  ADMIN: { label: 'Admin', description: 'Authority Console and pharmacy oversight' },
+  PHARMACIST: { label: 'Medical / Pharmacist', description: 'Prescription verification and case workstation' },
+  CUSTOMER: { label: 'Patient / User', description: 'Search, upload prescriptions, and track orders' },
 };
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [role, setRole] = useState<AuthRole>('CUSTOMER');
-  const [email, setEmail] = useState(roleCopy.CUSTOMER.email);
-  const [password, setPassword] = useState('Admin@123');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [abhaId, setAbhaId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectRole = (nextRole: AuthRole): void => { setRole(nextRole); setEmail(roleCopy[nextRole].email); setError(null); };
+  const selectRole = (nextRole: AuthRole): void => { setRole(nextRole); setError(null); };
+  const selectMode = (nextMode: 'login' | 'register'): void => {
+    setMode(nextMode); setError(null); setName(''); setEmail(''); setPassword(''); setPhone(''); setAbhaId('');
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault(); setError(null); setIsSubmitting(true);
     try {
-      const { data } = await apiClient.post<{ accessToken: string; refreshToken: string; user: AuthUser }>('/auth/login', { email, password });
+      const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
+      const payload = mode === 'login' ? { email, password } : { name, email, password, phone: phone || undefined, abhaId: abhaId || undefined };
+      const { data } = await apiClient.post<{ accessToken: string; refreshToken: string; user: AuthUser }>(endpoint, payload);
       localStorage.setItem('accessToken', data.accessToken); localStorage.setItem('refreshToken', data.refreshToken); onAuthenticated(data.user);
     } catch (requestError: unknown) {
       const message = (requestError as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message;
@@ -50,17 +59,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
         </div>
         <div className="p-6 sm:p-10 bg-white text-slate-900">
           <div className="lg:hidden flex items-center gap-3 mb-8"><div className="h-10 w-10 rounded-xl bg-sky-500 flex items-center justify-center text-xl font-bold text-white">+</div><span className="text-xl font-bold">Medi<span className="text-sky-600">Locator</span></span></div>
-          <p className="text-sm font-semibold text-sky-700">Secure sign in</p><h2 className="mt-2 text-3xl font-bold">Welcome back</h2><p className="mt-2 text-sm text-slate-500">Choose your portal to continue.</p>
-          <div className="mt-7 grid gap-2" role="tablist" aria-label="Choose account type">
-            {(Object.keys(roleCopy) as AuthRole[]).map((item) => <button key={item} type="button" role="tab" aria-selected={role === item} onClick={() => selectRole(item)} className={`text-left rounded-xl border p-3 transition ${role === item ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">{roleCopy[item].label}</span><span className="block text-xs text-slate-500 mt-1">{roleCopy[item].description}</span></button>)}
+          <div className="flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Account access">
+            <button type="button" role="tab" aria-selected={mode === 'login'} onClick={() => selectMode('login')} className={`flex-1 rounded-lg px-3 py-2 text-sm font-bold ${mode === 'login' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500'}`}>Existing user login</button>
+            <button type="button" role="tab" aria-selected={mode === 'register'} onClick={() => selectMode('register')} className={`flex-1 rounded-lg px-3 py-2 text-sm font-bold ${mode === 'register' ? 'bg-white text-sky-700 shadow-sm' : 'text-slate-500'}`}>New user sign up</button>
           </div>
+          <p className="mt-7 text-sm font-semibold text-sky-700">{mode === 'login' ? 'Secure sign in' : 'Create your account'}</p><h2 className="mt-2 text-3xl font-bold">{mode === 'login' ? 'Welcome back' : 'Get started'}</h2><p className="mt-2 text-sm text-slate-500">{mode === 'login' ? 'Choose your portal to continue.' : 'Create a patient account to search medicines and manage prescriptions.'}</p>
+          {mode === 'login' && <div className="mt-7 grid gap-2" role="tablist" aria-label="Choose account type">
+            {(Object.keys(roleCopy) as AuthRole[]).map((item) => <button key={item} type="button" role="tab" aria-selected={role === item} onClick={() => selectRole(item)} className={`text-left rounded-xl border p-3 transition ${role === item ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">{roleCopy[item].label}</span><span className="block text-xs text-slate-500 mt-1">{roleCopy[item].description}</span></button>)}
+          </div>}
           <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            {mode === 'register' && <>
+              <label className="block text-sm font-semibold">Full name<input value={name} onChange={(event) => setName(event.target.value)} type="text" autoComplete="name" required className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></label>
+              <label className="block text-sm font-semibold">Phone (optional)<input value={phone} onChange={(event) => setPhone(event.target.value)} type="tel" autoComplete="tel" className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></label>
+              <label className="block text-sm font-semibold">ABHA ID (optional)<input value={abhaId} onChange={(event) => setAbhaId(event.target.value)} type="text" className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></label>
+            </>}
             <label className="block text-sm font-semibold">Email<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></label>
-            <label className="block text-sm font-semibold">Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" autoComplete="current-password" required minLength={6} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></label>
+            <label className="block text-sm font-semibold">Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} required minLength={mode === 'login' ? 6 : 8} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></label>
             {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-            <button disabled={isSubmitting} type="submit" className="w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white transition hover:bg-sky-700 disabled:cursor-wait disabled:opacity-60">{isSubmitting ? 'Signing in…' : `Sign in as ${roleCopy[role].label}`}</button>
+            <button disabled={isSubmitting} type="submit" className="w-full rounded-xl bg-sky-600 px-4 py-3 font-bold text-white transition hover:bg-sky-700 disabled:cursor-wait disabled:opacity-60">{isSubmitting ? (mode === 'login' ? 'Signing in…' : 'Creating account…') : mode === 'login' ? `Sign in as ${roleCopy[role].label}` : 'Create patient account'}</button>
           </form>
-          <p className="mt-5 text-center text-xs text-slate-500">Demo accounts use the seeded password <strong>Admin@123</strong>.</p>
+          <p className="mt-5 text-center text-xs text-slate-500">{mode === 'login' ? 'Use the email and password associated with your account.' : 'New accounts are created securely as patient accounts.'}</p>
         </div>
       </section>
     </main>

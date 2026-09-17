@@ -46,15 +46,11 @@ npm run dev
 
 The API runs on `http://localhost:3001`.
 
-## Sign in
+## Authentication
 
-The frontend opens on the role-aware sign-in screen. The seeded development accounts all use `Admin@123`:
+The frontend provides separate options for existing-user login and new-user sign-up. New users provide a name, email, password, and optional phone/ABHA ID; the backend creates them as customer accounts and signs them in immediately. Admin and pharmacist accounts are provisioned separately and can use the existing-user login.
 
-- Admin: `admin@medilocator.com`
-- Medical / Pharmacist: `pharmacist@medilocator.com`
-- Patient / User: `customer@medilocator.com`
-
-After login, the access token is refreshed through the backend and navigation is scoped to the selected account role.
+The database seed is intentionally empty, so no predefined credentials or patient data are created by `npm run db:seed`.
 
 ## Start the frontend
 
