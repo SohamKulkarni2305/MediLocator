@@ -21,10 +21,16 @@ import { prisma } from './lib/prisma';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const configuredAppUrl = process.env.APP_URL?.trim();
+const allowedOrigins = [
+  'http://localhost:3000',
+  configuredAppUrl && (configuredAppUrl.startsWith('http://') || configuredAppUrl.startsWith('https://') ? configuredAppUrl : `https://${configuredAppUrl}`),
+].filter((origin): origin is string => Boolean(origin));
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 app.use(helmet());
-app.use(cors({ origin: ['http://localhost:3000', process.env.APP_URL || ''] }));
+app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

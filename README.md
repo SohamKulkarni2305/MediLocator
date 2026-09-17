@@ -61,7 +61,7 @@ cd frontend
 npm run dev
 ```
 
-The frontend runs on `http://localhost:3000`. Vite proxies `/api` requests to the backend locally. For production, set `VITE_API_BASE_URL` to the deployed backend API origin (including `/api`), or set `VITE_BACKEND_URL` to the backend origin and keep `VITE_API_BASE_URL=/api`.
+The frontend runs on `http://localhost:3000`. Vite proxies `/api` requests to the backend locally. For production, set `VITE_API_BASE_URL` to the deployed backend origin (with or without `/api`), or set `VITE_BACKEND_URL` to the backend origin and keep `VITE_API_BASE_URL=/api`. Set the backend `APP_URL` to the frontend URL; both `https://example.com` and `example.com` are accepted.
 
 ## Run both applications
 
