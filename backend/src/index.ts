@@ -26,11 +26,20 @@ const allowedOrigins = [
   'http://localhost:3000',
   configuredAppUrl && (configuredAppUrl.startsWith('http://') || configuredAppUrl.startsWith('https://') ? configuredAppUrl : `https://${configuredAppUrl}`),
 ].filter((origin): origin is string => Boolean(origin));
+const isAllowedVercelPreview = (origin: string): boolean => /^https:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(origin);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 app.use(helmet());
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // Browsers omit Origin for same-origin and non-browser requests.
+    if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS'));
+  },
+}));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
