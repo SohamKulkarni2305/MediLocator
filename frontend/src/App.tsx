@@ -55,8 +55,9 @@ function AppContent() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.documentElement.lang = language;
     localStorage.setItem('medilocator-theme', theme);
-  }, [theme]);
+  }, [theme, language]);
 
   const toggleCurrency = () => {
     setCurrency((prev) => (prev === 'INR' ? 'USD' : 'INR'));
@@ -137,6 +138,8 @@ function AppContent() {
       case 'customer-account':
         return (
           <LazyCustomerAccount
+            user={user}
+            language={language}
             currency={currency}
             onNavigateToSearch={() => setCurrentScreen('customer-search')}
             onNavigateToPrescription={() => setCurrentScreen('customer-prescription')}

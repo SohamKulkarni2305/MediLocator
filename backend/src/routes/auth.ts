@@ -68,7 +68,7 @@ router.post('/login', validateRequest(LoginSchema), async (req, res, next) => {
       },
     });
 
-    res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, abhaId: user.abhaId, phone: user.phone, mrn: user.mrn } });
   } catch (error) {
     next(error);
   }
@@ -109,6 +109,17 @@ router.get('/me', requireAuth, async (req, res, next) => {
     if (!user) {
         return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
     }
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/me', requireAuth, async (req, res, next) => {
+  try {
+    const allowed = ['name', 'phone', 'abhaId'];
+    const data = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
+    const user = await prisma.user.update({ where: { id: req.user!.id }, data, select: { id: true, name: true, email: true, role: true, abhaId: true, phone: true, mrn: true } });
     res.json(user);
   } catch (error) {
     next(error);

@@ -36,6 +36,15 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 }) => {
   const copy = getTranslations(language);
   const isCustomerScreen = currentScreen.startsWith('customer-');
+  const localizedScreenLabels: Partial<Record<ActiveScreen, string>> = language === 'hi' ? {
+    'admin-console': 'मुख्य एडमिन कंसोल',
+    'pharmacist-workstation': 'फार्मासिस्ट कार्यस्थल',
+    'customer-search': 'दवा खोजें और तुलना करें',
+    'customer-prescription': 'प्रिस्क्रिप्शन अपलोड',
+    'customer-tracking': 'ऑर्डर ट्रैकिंग',
+    'customer-account': 'स्वास्थ्य खाता',
+    'architecture-blueprint': 'सिस्टम आर्किटेक्चर',
+  } : {};
 
   const screens: { id: ActiveScreen; label: string; icon: string; category: string; roles: AuthRole[] }[] = [
     { id: 'admin-console', label: 'Master Admin Console', icon: 'shield_person', category: 'Authority', roles: ['ADMIN'] },
@@ -71,7 +80,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">{scr.icon}</span>
-                  <span>{scr.label}</span>
+                  <span>{localizedScreenLabels[scr.id] || scr.label}</span>
                 </button>
               );
             })}
@@ -91,7 +100,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
             <span className="font-bold text-emerald-400">{currency === 'USD' ? '$ USD' : '₹ INR'}</span>
           </button>
 
-          <button onClick={onLogout} className="px-2.5 py-1 bg-slate-900 hover:bg-red-950 border border-slate-800 rounded text-slate-300 hover:text-red-300 font-mono text-xs transition">Sign out</button>
+          <button onClick={onLogout} className="px-2.5 py-1 bg-slate-900 hover:bg-red-950 border border-slate-800 rounded text-slate-300 hover:text-red-300 font-mono text-xs transition">{language === 'hi' ? 'साइन आउट' : 'Sign out'}</button>
 
           <button
             onClick={onToggleTheme}

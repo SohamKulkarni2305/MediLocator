@@ -22,28 +22,6 @@ export interface UserProfileDetails {
   upiId: string;
 }
 
-export const DEFAULT_USER_PROFILE: UserProfileDetails = {
-  fullName: 'Rajesh Sharma',
-  age: 58,
-  gender: 'M',
-  bloodGroup: 'B+ Positive',
-  chronicCondition: 'HTN & Type 2 Diabetes',
-  primaryAddress: 'Flat 402, Green Glen Heights, Indiranagar, Bengaluru - 560038',
-  abhaId: '91-4820-1940-2219',
-  abhaStatus: 'Active',
-  primaryDoctor: 'Dr. Arvind Mehta, MD',
-  doctorAffiliation: 'Cardiology, Apollo Heart Center',
-  knownAllergies: 'Sulfa Drugs',
-  allergyDetails: 'Automated dispensation block active. Verified zero penicillin or statin contraindications.',
-  bloodPressure: '142/88',
-  hba1c: '7.4%',
-  weight: '76.5 kg',
-  emergencyContactName: 'Rohan Sharma (Son)',
-  emergencyContactPhone: '+91-98450-XXXXX',
-  spouseName: 'Kavita Sharma',
-  upiId: 'HDFC ••8920',
-};
-
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -93,7 +71,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   const handleResetToDefault = () => {
-    setFormData(DEFAULT_USER_PROFILE);
+    setFormData(profile);
     setErrorMsg(null);
   };
 
@@ -470,7 +448,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               onClick={handleResetToDefault}
               className="text-[11px] text-slate-500 hover:text-slate-800 hover:underline cursor-pointer"
             >
-              Reset to Defaults
+              Reset Changes
             </button>
 
             <div className="flex items-center gap-2">

@@ -3,12 +3,17 @@ import { Currency } from '../types';
 import { CustomerBottomNav } from './CustomerBottomNav';
 import {
   EditProfileModal,
-  DEFAULT_USER_PROFILE,
   UserProfileDetails,
 } from './EditProfileModal';
 import { PrescriptionHistorySection } from './PrescriptionHistorySection';
+import { AuthUser } from './AuthScreen';
+import { apiClient } from '../api/client';
+import { getTranslations } from '../i18n';
+import { Language } from '../types';
 
 interface CustomerAccountProps {
+  user: AuthUser;
+  language: Language;
   currency: Currency;
   onNavigateToSearch: () => void;
   onNavigateToPrescription: () => void;
@@ -16,12 +21,40 @@ interface CustomerAccountProps {
 }
 
 export const CustomerAccount: React.FC<CustomerAccountProps> = ({
+  user,
+  language,
   currency,
   onNavigateToSearch,
   onNavigateToPrescription,
   onNavigateToTracking,
 }) => {
-  const [profile, setProfile] = useState<UserProfileDetails>(DEFAULT_USER_PROFILE);
+  const copy = getTranslations(language);
+  const [profile, setProfile] = useState<UserProfileDetails>(() => {
+    const saved = localStorage.getItem(`medilocator-profile-${user.id}`);
+    const base: UserProfileDetails = {
+    fullName: user.name,
+    age: user.age ?? 0,
+    gender: (user.gender as UserProfileDetails['gender']) || 'Other',
+    bloodGroup: user.bloodGroup || 'Not provided',
+    chronicCondition: user.chronicCondition || 'Not provided',
+    primaryAddress: user.primaryAddress || 'Not provided',
+    abhaId: user.abhaId || 'Not linked',
+    abhaStatus: user.abhaId ? 'Active' : 'Unlinked',
+    primaryDoctor: user.primaryDoctor || 'Not provided',
+    doctorAffiliation: user.doctorAffiliation || 'Not provided',
+    knownAllergies: user.knownAllergies || 'Not provided',
+    allergyDetails: user.allergyDetails || 'Not provided',
+    bloodPressure: user.bloodPressure || 'Not provided',
+    hba1c: user.hba1c || 'Not provided',
+    weight: user.weight || 'Not provided',
+    emergencyContactName: user.emergencyContactName || 'Not provided',
+    emergencyContactPhone: user.emergencyContactPhone || user.phone || 'Not provided',
+    spouseName: user.spouseName || 'Not provided',
+    upiId: user.upiId || 'Not provided',
+    };
+    if (!saved) return base;
+    try { return { ...base, ...JSON.parse(saved) as Partial<UserProfileDetails> }; } catch { return base; }
+  });
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editInitialTab, setEditInitialTab] = useState<'general' | 'contacts' | 'clinical'>('general');
   const [refill1Active, setRefill1Active] = useState(true);
@@ -40,7 +73,10 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
 
   const handleSaveProfile = (updated: UserProfileDetails) => {
     setProfile(updated);
-    showToast('Patient details & clinical records updated successfully');
+    localStorage.setItem(`medilocator-profile-${user.id}`, JSON.stringify(updated));
+    apiClient.patch('/auth/me', { ...updated, name: updated.fullName, age: updated.age || null })
+      .then(() => showToast(copy.accountUpdated))
+      .catch(() => showToast(copy.accountSaveFailed));
   };
 
   const formatPrice = (usd: number, inr: number) => {
@@ -83,7 +119,7 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
             className="flex items-center gap-1 bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200/80 px-2.5 py-1 rounded-full text-xs font-medium transition cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm text-sky-600">location_on</span>
-            <span className="truncate max-w-[140px] sm:max-w-[200px]">Deliver to <strong>10001 Midtown, NY</strong></span>
+            <span className="truncate max-w-[140px] sm:max-w-[200px]">{copy.deliverTo} <strong>{profile.primaryAddress}</strong></span>
             <span className="material-symbols-outlined text-xs text-sky-700">arrow_drop_down</span>
           </button>
 
@@ -136,7 +172,7 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1">
                   <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  <span>Blood Group: <strong>{profile.bloodGroup}</strong></span>
+                  <span>{copy.bloodGroup}: <strong>{profile.bloodGroup}</strong></span>
                 </div>
               </div>
             </div>
@@ -148,7 +184,7 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
               title="Edit Patient Details"
             >
               <span className="material-symbols-outlined text-sm">edit</span>
-              <span className="hidden sm:inline">Edit Details</span>
+              <span className="hidden sm:inline">{copy.editDetails}</span>
             </button>
           </div>
 
@@ -156,7 +192,7 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
           <div className="flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 text-xs font-medium">
             <div className="flex items-center gap-1.5">
               <span className="material-symbols-outlined text-sm text-amber-700">medical_services</span>
-              <span>Chronic Regimen: <strong>{profile.chronicCondition}</strong></span>
+              <span>{copy.chronicRegimen}: <strong>{profile.chronicCondition}</strong></span>
             </div>
             <button
               onClick={() => openEditModal('clinical')}
@@ -197,7 +233,7 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
               <span className="material-symbols-outlined text-xs">
                 {profile.abhaStatus === 'Active' ? 'check' : 'hourglass_top'}
               </span>
-              <span>{profile.abhaStatus}</span>
+              <span>{profile.abhaStatus === 'Active' ? copy.active : profile.abhaStatus}</span>
             </span>
           </div>
         </div>
@@ -206,7 +242,7 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
         <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 border border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
-              MEDILOCATOR LIFETIME SAVINGS
+              {copy.lifetimeSavings}
             </span>
             <div className="w-7 h-7 rounded-full bg-slate-800 text-sky-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-base">savings</span>
@@ -255,135 +291,10 @@ export const CustomerAccount: React.FC<CustomerAccountProps> = ({
           </div>
         </div>
 
-        {/* Active Chronic Regimen */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-headline font-bold text-slate-900 text-sm">
-                Active Chronic Regimen
-              </h3>
-              <p className="text-[11px] text-slate-500">
-                2 Subscriptions active with automated generic equivalence
-              </p>
-            </div>
-            <button
-              onClick={onNavigateToSearch}
-              className="px-2.5 py-1 bg-white hover:bg-slate-50 text-sky-700 border border-slate-300 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-sm">add</span>
-              <span>Add</span>
-            </button>
-          </div>
-
-          {/* Regimen Card 1: Atorvastatin */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold">
-                  RX SCHEDULE H
-                </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold flex items-center gap-0.5">
-                  <span className="material-symbols-outlined text-[11px]">check</span>
-                  <span>Bioequivalent</span>
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="font-headline font-bold text-slate-900 text-sm">
-                  {formatPrice(11.50, 115.00)}
-                </span>
-                <span className="text-[11px] text-emerald-600 block font-medium">
-                  {currency === 'USD' ? 'Saves $30.50/mo' : 'Saves ₹305/mo'}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-headline font-bold text-slate-900 text-sm">
-                Atorvastatin Calcium 10mg
-              </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Prescribed: <span className="line-through text-slate-400">Lipitor 10mg</span> • Generic: <strong className="text-slate-700">Cipla LipiSafe 10mg</strong>
-              </p>
-              <p className="text-xs text-sky-700 font-medium mt-1">
-                Dosage: 1 Tablet OD at Bedtime (Post Dinner)
-              </p>
-            </div>
-
-            {/* Toggle Refill Strip */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-slate-600">
-                <span className="material-symbols-outlined text-sm text-sky-600">autorenew</span>
-                <span>Next Refill in 12 days (Aug 24) • Dispatched via MetroCare #104</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={refill1Active}
-                  onChange={(e) => {
-                    setRefill1Active(e.target.checked);
-                    showToast(e.target.checked ? 'Atorvastatin refill resumed' : 'Atorvastatin refill paused');
-                  }}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
-              </label>
-            </div>
-          </div>
-
-          {/* Regimen Card 2: Metformin */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold">
-                  DAILY ESSENTIAL
-                </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold flex items-center gap-0.5">
-                  <span className="material-symbols-outlined text-[11px]">check</span>
-                  <span>Bioequivalent</span>
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="font-headline font-bold text-slate-900 text-sm">
-                  {formatPrice(7.20, 72.00)}
-                </span>
-                <span className="text-[11px] text-emerald-600 block font-medium">
-                  {currency === 'USD' ? 'Saves $20.80/mo' : 'Saves ₹208/mo'}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-headline font-bold text-slate-900 text-sm">
-                Metformin HCl 500mg ER
-              </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Prescribed: <span className="line-through text-slate-400">Glucophage 500mg</span> • Generic: <strong className="text-slate-700">Sun Met-SR 500mg</strong>
-              </p>
-              <p className="text-xs text-sky-700 font-medium mt-1">
-                Dosage: 1 Tablet BD after Breakfast &amp; Dinner
-              </p>
-            </div>
-
-            {/* Toggle Refill Strip */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-slate-600">
-                <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
-                <span>Next Refill in 12 days (Aug 24) • Tamper-sealed cold container</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={refill2Active}
-                  onChange={(e) => {
-                    setRefill2Active(e.target.checked);
-                    showToast(e.target.checked ? 'Metformin refill resumed' : 'Metformin refill paused');
-                  }}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
-              </label>
-            </div>
-          </div>
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs">
+          <h3 className="font-headline font-bold text-slate-900 text-sm">Active Chronic Regimen</h3>
+          <p className="text-[11px] text-slate-500 mt-1">Your medicines and refills will appear here after a prescription is verified.</p>
+          <button onClick={onNavigateToPrescription} className="mt-3 px-3 py-2 rounded-lg bg-sky-600 text-white text-xs font-bold">Upload prescription</button>
         </div>
 
         {/* Clinical Safety Gate & Vitals */}

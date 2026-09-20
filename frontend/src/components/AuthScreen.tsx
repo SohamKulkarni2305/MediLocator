@@ -11,6 +11,22 @@ export interface AuthUser {
   abhaId?: string | null;
   phone?: string | null;
   mrn?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  bloodGroup?: string | null;
+  chronicCondition?: string | null;
+  primaryAddress?: string | null;
+  primaryDoctor?: string | null;
+  doctorAffiliation?: string | null;
+  knownAllergies?: string | null;
+  allergyDetails?: string | null;
+  bloodPressure?: string | null;
+  hba1c?: string | null;
+  weight?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  spouseName?: string | null;
+  upiId?: string | null;
 }
 
 interface AuthScreenProps { onAuthenticated: (user: AuthUser) => void; }
