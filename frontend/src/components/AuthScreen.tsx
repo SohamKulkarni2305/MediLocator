@@ -60,6 +60,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
       const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
       const payload = mode === 'login' ? { email, password } : { name, email, password, role: registrationRole, phone: phone || undefined, abhaId: abhaId || undefined };
       const { data } = await apiClient.post<{ accessToken: string; refreshToken: string; user: AuthUser }>(endpoint, payload);
+      if (mode === 'login' && data.user.role !== role) {
+        setError(`This account is registered as ${roleCopy[data.user.role].label}. Select that portal to continue.`);
+        return;
+      }
       localStorage.setItem('accessToken', data.accessToken); localStorage.setItem('refreshToken', data.refreshToken); onAuthenticated(data.user);
     } catch (requestError: unknown) {
       const message = (requestError as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message;
@@ -85,11 +89,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthenticated }) => {
           </div>
           <p className="mt-7 text-sm font-semibold text-sky-700">{mode === 'login' ? 'Secure sign in' : 'Create your account'}</p><h2 className="mt-2 text-3xl font-bold">{mode === 'login' ? 'Welcome back' : 'Get started'}</h2><p className="mt-2 text-sm text-slate-500">{mode === 'login' ? 'Choose your portal to continue.' : 'Create a patient account to search medicines and manage prescriptions.'}</p>
           {mode === 'login' && <div className="mt-7 grid gap-2" role="tablist" aria-label="Choose account type">
-            {(Object.keys(roleCopy) as AuthRole[]).map((item) => <button key={item} type="button" role="tab" aria-selected={role === item} onClick={() => selectRole(item)} className={`text-left rounded-xl border p-3 transition ${role === item ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">{roleCopy[item].label}</span><span className="block text-xs text-slate-500 mt-1">{roleCopy[item].description}</span></button>)}
+            {(Object.keys(roleCopy) as AuthRole[]).map((item) => <button key={item} type="button" role="tab" aria-selected={role === item} onClick={() => selectRole(item)} className={`text-left rounded-xl border p-3 transition ${role === item ? 'border-sky-500 bg-sky-50 text-slate-900 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">{roleCopy[item].label}</span><span className="block text-xs text-slate-600 mt-1">{roleCopy[item].description}</span></button>)}
           </div>}
           {mode === 'register' && <div className="mt-7 grid grid-cols-2 gap-2" role="group" aria-label="Choose account type">
-            <button type="button" onClick={() => setRegistrationRole('CUSTOMER')} className={`rounded-xl border p-3 text-left transition ${registrationRole === 'CUSTOMER' ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">Patient / User</span><span className="mt-1 block text-xs text-slate-500">Search, upload, and track prescriptions</span></button>
-            <button type="button" onClick={() => setRegistrationRole('PHARMACIST')} className={`rounded-xl border p-3 text-left transition ${registrationRole === 'PHARMACIST' ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">Pharmacist</span><span className="mt-1 block text-xs text-slate-500">Review prescriptions and manage cases</span></button>
+            <button type="button" onClick={() => setRegistrationRole('CUSTOMER')} className={`rounded-xl border p-3 text-left transition ${registrationRole === 'CUSTOMER' ? 'border-sky-500 bg-sky-50 text-slate-900 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">Patient / User</span><span className="mt-1 block text-xs text-slate-600">Search, upload, and track prescriptions</span></button>
+            <button type="button" onClick={() => setRegistrationRole('PHARMACIST')} className={`rounded-xl border p-3 text-left transition ${registrationRole === 'PHARMACIST' ? 'border-sky-500 bg-sky-50 text-slate-900 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}><span className="block text-sm font-bold">Pharmacist</span><span className="mt-1 block text-xs text-slate-600">Review prescriptions and manage cases</span></button>
           </div>}
           <form onSubmit={handleSubmit} className="mt-7 space-y-4">
             {mode === 'register' && <>
