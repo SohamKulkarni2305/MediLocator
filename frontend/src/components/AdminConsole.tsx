@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Currency, PharmacyKYC, AuditLedgerEntry } from '../types';
-import { INITIAL_KYC_QUEUE, INITIAL_AUDIT_LOGS, ORANGE_BOOK_DATA } from '../data/mockData';
+import { useOrangeBook, usePharmacies } from '../api/queries';
+import { useApprovePharmacy, useRejectPharmacy } from '../api/mutations';
 import { PharmacopeiaModal, AuditPackageModal } from './Modals';
 import { RegulatoryComplianceConsole } from './RegulatoryComplianceConsole';
 import { InventoryManagementPanel } from './InventoryManagementPanel';
@@ -15,8 +16,19 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   onNavigateToWorkstation,
 }) => {
   const [adminTab, setAdminTab] = useState<'compliance' | 'operations'>('compliance');
-  const [kycList, setKycList] = useState<PharmacyKYC[]>(INITIAL_KYC_QUEUE);
-  const [auditLogs, setAuditLogs] = useState<AuditLedgerEntry[]>(INITIAL_AUDIT_LOGS);
+  const [kycList, setKycList] = useState<PharmacyKYC[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLedgerEntry[]>([]);
+  const pharmaciesQuery = usePharmacies();
+  const orangeBookQuery = useOrangeBook();
+  const approvePharmacy = useApprovePharmacy();
+  const rejectPharmacy = useRejectPharmacy();
+
+  useEffect(() => {
+    setKycList((pharmaciesQuery.data || []).map((pharmacy: any) => ({
+      ...pharmacy,
+      submittedTime: new Date(pharmacy.submittedAt).toLocaleString(),
+    })));
+  }, [pharmaciesQuery.data]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
   const [isWarmingCache, setIsWarmingCache] = useState(false);
@@ -52,6 +64,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
   const handleKYCAction = (id: string, action: string) => {
     if (action === 'Reject') {
+      rejectPharmacy.mutate({ id, reason: 'Rejected during administrative review' });
       setKycList(prev => prev.map(item => item.id === id ? { ...item, status: 'rejected' } : item));
       showToast('Pharmacy license application rejected and logged in immutable ledger.', 'error');
       // Add audit log
@@ -69,6 +82,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       };
       setAuditLogs(prev => [newLog, ...prev]);
     } else if (action === 'Approve & Activate') {
+      approvePharmacy.mutate(id);
       setKycList(prev => prev.map(item => item.id === id ? { ...item, status: 'approved' } : item));
       showToast('Pharmacy partner approved. Multi-tenant PostgreSQL RLS isolation provisioned.', 'success');
       const newLog: AuditLedgerEntry = {
@@ -105,7 +119,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
     }
   };
 
-  const filteredOrangeBook = ORANGE_BOOK_DATA.filter(item =>
+  const filteredOrangeBook = (orangeBookQuery.data || []).filter(item =>
     item.brandName.toLowerCase().includes(orangeBookSearch.toLowerCase()) ||
     item.saltName.toLowerCase().includes(orangeBookSearch.toLowerCase())
   );

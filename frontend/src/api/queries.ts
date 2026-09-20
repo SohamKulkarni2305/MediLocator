@@ -71,6 +71,14 @@ export const useOrderTracking = (orderId: string | null) => {
   });
 };
 
+export const useOrders = () => useQuery({
+  queryKey: ['orders'],
+  queryFn: async () => {
+    const { data } = await apiClient.get<Array<{ id: string; orderId: string }>>('/orders');
+    return data;
+  },
+});
+
 export const useComplianceTrends = () => {
   return useQuery({
     queryKey: ['compliance-trends'],

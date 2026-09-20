@@ -4,8 +4,8 @@ import { CustomerBottomNav } from './CustomerBottomNav';
 import {
   PrescriptionUploadSimulator,
   UploadedRxData,
-  SAMPLE_PRESCRIPTIONS,
 } from './PrescriptionUploadSimulator';
+import { useUploadPrescription } from '../api/mutations';
 
 interface CustomerPrescriptionProps {
   currency: Currency;
@@ -20,10 +20,11 @@ export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
   onNavigateToSearch,
   onNavigateToAccount,
 }) => {
-  const [currentRx, setCurrentRx] = useState<UploadedRxData | null>(SAMPLE_PRESCRIPTIONS.cardio);
-  const [hasUploaded, setHasUploaded] = useState(true);
+  const [currentRx, setCurrentRx] = useState<UploadedRxData | null>(null);
+  const [hasUploaded, setHasUploaded] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [authorized, setAuthorized] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+  const uploadPrescription = useUploadPrescription();
   const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
   const [genericChoices, setGenericChoices] = useState<Record<string, boolean>>({
     'med-1': true,
@@ -41,6 +42,12 @@ export const CustomerPrescription: React.FC<CustomerPrescriptionProps> = ({
   const handlePrescriptionSelected = (rxData: UploadedRxData) => {
     setCurrentRx(rxData);
     setHasUploaded(true);
+    if (rxData.file) {
+      const formData = new FormData();
+      formData.append('file', rxData.file);
+      formData.append('source', rxData.source);
+      uploadPrescription.mutate(formData);
+    }
     // Initialize default generic selections for newly loaded medicines
     const newChoices = { ...genericChoices };
     rxData.medicines.forEach((med) => {

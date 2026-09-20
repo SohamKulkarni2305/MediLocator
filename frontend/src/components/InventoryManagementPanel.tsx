@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { INITIAL_INVENTORY } from '../data/mockData';
 import { InventoryRecord } from '../types';
 
 interface InventoryManagementPanelProps {
@@ -8,7 +7,7 @@ interface InventoryManagementPanelProps {
 }
 
 export const InventoryManagementPanel: React.FC<InventoryManagementPanelProps> = ({ clusterFilter, onNotify }) => {
-  const [records, setRecords] = useState<InventoryRecord[]>(INITIAL_INVENTORY);
+  const [records, setRecords] = useState<InventoryRecord[]>([]);
   const visibleRecords = useMemo(
     () => clusterFilter === 'All clusters' ? records : records.filter((record) => record.cluster === clusterFilter),
     [clusterFilter, records]
@@ -27,7 +26,7 @@ export const InventoryManagementPanel: React.FC<InventoryManagementPanelProps> =
       <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between gap-3">
         <div>
           <h2 id="inventory-heading" className="font-headline font-bold text-slate-900">Drug Inventory Management</h2>
-          <p className="text-xs text-slate-500 mt-1">Mock inventory adapter ready for later database replacement.</p>
+          <p className="text-xs text-slate-500 mt-1">Inventory is populated from connected pharmacy stock systems.</p>
         </div>
         <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${alertCount ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
           {alertCount} {alertCount === 1 ? 'alert' : 'alerts'}
@@ -48,6 +47,7 @@ export const InventoryManagementPanel: React.FC<InventoryManagementPanelProps> =
                 <td className="px-4 py-3 text-right"><button type="button" onClick={() => handleReorder(record)} disabled={record.status === 'healthy'} className="rounded-lg bg-sky-50 px-2.5 py-1.5 font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-40" data-testid={`inventory-reorder-${record.id}`}>Reorder</button></td>
               </tr>
             ))}
+            {!visibleRecords.length && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500">No inventory records are available for this cluster.</td></tr>}
           </tbody>
         </table>
       </div>

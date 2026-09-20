@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { playVerificationChime } from '../utils/audioChime';
+import { apiClient } from '../api/client';
 
 export type PrescriptionStatus = 'pending' | 'approved' | 'rejected' | 'verified' | 'expired';
 
@@ -283,9 +284,21 @@ interface PrescriptionContextType {
 const PrescriptionContext = createContext<PrescriptionContextType | undefined>(undefined);
 
 export const PrescriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [prescriptions, setPrescriptions] = useState<PrescriptionRecord[]>(INITIAL_PRESCRIPTIONS);
+  const [prescriptions, setPrescriptions] = useState<PrescriptionRecord[]>([]);
   const [toasts, setToasts] = useState<VerificationToast[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (!localStorage.getItem('accessToken')) return;
+      apiClient.get<PrescriptionRecord[]>('/prescriptions')
+        .then(({ data }) => setPrescriptions(data))
+        .catch(() => setPrescriptions([]));
+    };
+    refresh();
+    window.addEventListener('prescriptions:changed', refresh);
+    return () => window.removeEventListener('prescriptions:changed', refresh);
+  }, []);
 
   const dismissToast = useCallback((toastId: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== toastId));

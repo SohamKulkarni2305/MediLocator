@@ -7,6 +7,19 @@ const router = Router();
 
 router.use(requireAuth, requireRole(['CUSTOMER', 'ADMIN']));
 
+router.get('/', async (req, res, next) => {
+  try {
+    const orders = await prisma.order.findMany({
+      where: { patientId: req.user!.role === 'CUSTOMER' ? req.user!.id : undefined },
+      select: { id: true, orderId: true, createdAt: true, currentMilestoneIndex: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/:id', async (req, res, next) => {
   try {
     const order = await prisma.order.findUnique({

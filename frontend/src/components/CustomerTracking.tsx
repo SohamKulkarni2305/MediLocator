@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Currency } from '../types';
-import { INITIAL_ORDER_TRACKING } from '../data/mockData';
+import { useOrderTracking, useOrders } from '../api/queries';
 import { InvoiceModal } from './Modals';
 import { CustomerBottomNav } from './CustomerBottomNav';
 
@@ -19,23 +19,16 @@ export const CustomerTracking: React.FC<CustomerTrackingProps> = ({
   onNavigateToPrescription,
   onNavigateToAccount,
 }) => {
-  const [tracking] = useState(INITIAL_ORDER_TRACKING);
-  const [distance, setDistance] = useState(450);
-  const [temperature, setTemperature] = useState(4.0);
+  const ordersQuery = useOrders();
+  const orderId = ordersQuery.data?.[0]?.id || null;
+  const trackingQuery = useOrderTracking(orderId);
+  const tracking = trackingQuery.data;
+  const [distance] = useState(0);
+  const [temperature] = useState(0);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [reminderSet, setReminderSet] = useState(false);
 
-  // Live courier telemetry simulation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDistance((prev) => (prev > 100 ? prev - 15 : 450));
-      setTemperature((prev) => {
-        const delta = (Math.random() - 0.5) * 0.1;
-        return Number((prev + delta).toFixed(1));
-      });
-    }, 2500);
-    return () => clearInterval(interval);
-  }, []);
+  if (!tracking) return <div className="min-h-screen bg-slate-50 grid place-items-center text-slate-600">{trackingQuery.isLoading || ordersQuery.isLoading ? 'Loading your orders…' : 'No active orders yet.'}</div>;
 
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800 font-sans pb-16">

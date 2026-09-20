@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Currency, PharmacistCase } from '../types';
-import { PHARMACIST_CASES } from '../data/mockData';
-import { usePrescription } from '../context/PrescriptionContext';
+import { usePharmacistCases } from '../api/queries';
+import { useCaseSignoff } from '../api/mutations';
 
 interface PharmacistWorkstationProps {
   currency: Currency;
@@ -14,20 +14,25 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
   onNavigateToTracking,
   onNavigateToAdmin,
 }) => {
-  const { updatePrescriptionStatus } = usePrescription();
+  const casesQuery = usePharmacistCases();
+  const caseSignoff = useCaseSignoff();
   const [activeCaseIndex, setActiveCaseIndex] = useState(0);
   const [attestationChecked, setAttestationChecked] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isInverted, setIsInverted] = useState(false);
-  const [slaSeconds, setSlaSeconds] = useState(504); // 8m 24s
+  const [slaSeconds, setSlaSeconds] = useState(0);
   const [caseDecisions, setCaseDecisions] = useState<
     Record<string, { status: 'approved' | 'rejected'; reason?: string; timestamp: string }>
   >({});
   const [rejectReason, setRejectReason] = useState('BLURRY_IMAGE');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  const activeCase: PharmacistCase = PHARMACIST_CASES[activeCaseIndex];
+  const cases = (casesQuery.data || []) as PharmacistCase[];
+  const activeCase: PharmacistCase | undefined = cases[activeCaseIndex];
+  if (!activeCase) {
+    return <div className="min-h-screen bg-slate-100 grid place-items-center text-slate-600">{casesQuery.isLoading ? 'Loading review queue…' : 'No prescriptions are waiting for review.'}</div>;
+  }
   const currentDecision = caseDecisions[activeCase.id];
 
   useEffect(() => {
@@ -61,8 +66,7 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
         timestamp,
       },
     }));
-    // Sync with patient's prescription status to trigger notification toast
-    updatePrescriptionStatus('rx-hist-3', 'approved');
+    caseSignoff.mutate({ id: activeCase.id, approved: true, pharmacistName: 'Authenticated pharmacist', pharmacistLicense: 'Verified by account' });
     showToast('Prescription Approved & Dispatched to Store Dispense. Tamper seal generated.', 'success');
   };
 
@@ -82,8 +86,7 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
       CONTROLLED_SUBSTANCE: 'Schedule X medicine requires physical paper verification at dispensing counter',
       INCOMPLETE_REGISTRATION: 'Doctor registration credentials could not be verified in MCI/NMC registry',
     };
-    // Sync with patient's prescription status to trigger notification toast
-    updatePrescriptionStatus('rx-hist-3', 'rejected', reasonMap[rejectReason] || rejectReason);
+    caseSignoff.mutate({ id: activeCase.id, approved: false, rejectionReason: reasonMap[rejectReason] || rejectReason, pharmacistName: 'Authenticated pharmacist', pharmacistLicense: 'Verified by account' });
     showToast(`Prescription rejected with code "${rejectReason}". Patient notified for re-upload.`, 'error');
   };
 
@@ -93,8 +96,6 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
       delete updated[activeCase.id];
       return updated;
     });
-    // Reset to pending so it can be verified or rejected again
-    updatePrescriptionStatus('rx-hist-3', 'pending');
     showToast(`Decision reverted for ${activeCase.caseNumber}. Returned to pending review.`, 'info');
   };
 
@@ -688,7 +689,7 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
                         ) : (
                           <button
                             onClick={() => {
-                              const nextIdx = (activeCaseIndex + 1) % PHARMACIST_CASES.length;
+                              const nextIdx = (activeCaseIndex + 1) % cases.length;
                               setActiveCaseIndex(nextIdx);
                             }}
                             className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow-xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
@@ -754,7 +755,7 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
                 FIFO VERIFICATION STREAM (STAGING QUEUE)
               </h3>
               <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                {PHARMACIST_CASES.length} Cases Waiting
+                {cases.length} Cases Waiting
               </span>
             </div>
             <div className="text-[11px] text-slate-500">
@@ -763,7 +764,7 @@ export const PharmacistWorkstation: React.FC<PharmacistWorkstationProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {PHARMACIST_CASES.map((item, idx) => {
+            {cases.map((item, idx) => {
               const isCurrent = idx === activeCaseIndex;
               const decision = caseDecisions[item.id];
               return (

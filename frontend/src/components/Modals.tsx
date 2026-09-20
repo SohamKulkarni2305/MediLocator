@@ -1,6 +1,6 @@
 import React from 'react';
 import { Currency } from '../types';
-import { ORANGE_BOOK_DATA } from '../data/mockData';
+import { useOrangeBook } from '../api/queries';
 
 interface PharmacopeiaModalProps {
   isOpen: boolean;
@@ -10,10 +10,11 @@ interface PharmacopeiaModalProps {
 
 export const PharmacopeiaModal: React.FC<PharmacopeiaModalProps> = ({ isOpen, onClose, currency }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const orangeBookQuery = useOrangeBook();
 
   if (!isOpen) return null;
 
-  const filtered = ORANGE_BOOK_DATA.filter(item => 
+  const filtered = (orangeBookQuery.data || []).filter(item => 
     item.brandName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.saltName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -87,6 +88,9 @@ export const PharmacopeiaModal: React.FC<PharmacopeiaModalProps> = ({ isOpen, on
                     </td>
                   </tr>
                 ))}
+                {!orangeBookQuery.isLoading && filtered.length === 0 && (
+                  <tr><td colSpan={7} className="py-8 text-center text-slate-500">No pharmacopeia records found.</td></tr>
+                )}
               </tbody>
             </table>
           </div>

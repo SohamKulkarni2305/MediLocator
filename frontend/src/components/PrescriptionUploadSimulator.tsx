@@ -5,6 +5,7 @@ export interface UploadedRxData {
   fileName: string;
   fileSize: string;
   source: 'camera' | 'file' | 'sample';
+  file?: File;
   previewUrl?: string;
   doctorName: string;
   doctorReg: string;
@@ -161,7 +162,7 @@ export const PrescriptionUploadSimulator: React.FC<PrescriptionUploadSimulatorPr
   currentRx,
   onReset,
 }) => {
-  const [activeTab, setActiveTab] = useState<'file' | 'camera' | 'sample'>('file');
+  const [activeTab, setActiveTab] = useState<'file' | 'camera'>('file');
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [cameraFacing, setCameraFacing] = useState<'back' | 'front'>('back');
@@ -215,13 +216,14 @@ export const PrescriptionUploadSimulator: React.FC<PrescriptionUploadSimulatorPr
         fileName: file.name,
         fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         source: 'file',
+        file,
         previewUrl: isPdf ? undefined : preview,
-        doctorName: 'Dr. Arvind Mehta, MD, DM',
-        doctorReg: 'MED-LIC-88219 (NABH)',
-        clinicName: 'Metro Heart & Diabetes Care Clinic',
+        doctorName: 'Pending document extraction',
+        doctorReg: 'Pending verification',
+        clinicName: 'Pending document extraction',
         date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        confidence: 99.2,
-        medicines: SAMPLE_PRESCRIPTIONS.cardio.medicines,
+        confidence: 0,
+        medicines: [],
       };
 
       startScanningProcess(newRx);
@@ -243,12 +245,12 @@ export const PrescriptionUploadSimulator: React.FC<PrescriptionUploadSimulatorPr
         fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         source: 'file',
         previewUrl: isPdf ? undefined : preview,
-        doctorName: 'Dr. Arvind Mehta, MD, DM',
-        doctorReg: 'MED-LIC-88219 (NABH)',
-        clinicName: 'Metro Heart & Diabetes Care Clinic',
+        doctorName: 'Pending document extraction',
+        doctorReg: 'Pending verification',
+        clinicName: 'Pending document extraction',
         date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        confidence: 99.2,
-        medicines: SAMPLE_PRESCRIPTIONS.cardio.medicines,
+        confidence: 0,
+        medicines: [],
       };
 
       startScanningProcess(newRx);
@@ -287,17 +289,10 @@ export const PrescriptionUploadSimulator: React.FC<PrescriptionUploadSimulatorPr
       clinicName: 'Metro Heart & Diabetes Care Clinic',
       date: 'Today (Live Optical Capture)',
       confidence: 99.5,
-      medicines: SAMPLE_PRESCRIPTIONS.cardio.medicines,
+        medicines: [],
     };
 
     startScanningProcess(cameraRx);
-  };
-
-  const handleSelectSample = (key: string) => {
-    const selected = SAMPLE_PRESCRIPTIONS[key];
-    if (selected) {
-      startScanningProcess(selected);
-    }
   };
 
   return (
@@ -340,20 +335,6 @@ export const PrescriptionUploadSimulator: React.FC<PrescriptionUploadSimulatorPr
               </span>
             </button>
 
-            <button
-              onClick={() => {
-                setActiveTab('sample');
-                setIsCameraActive(false);
-              }}
-              className={`pb-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition cursor-pointer ${
-                activeTab === 'sample' && !isCameraActive
-                  ? 'border-sky-600 text-sky-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">quick_reference_all</span>
-              <span>Sample Prescriptions</span>
-            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -643,53 +624,6 @@ export const PrescriptionUploadSimulator: React.FC<PrescriptionUploadSimulatorPr
           </div>
         )}
 
-        {/* TAB 3: SAMPLE PRESCRIPTIONS GALLERY */}
-        {activeTab === 'sample' && !isCameraActive && (
-          <div className="p-5 sm:p-6 space-y-3">
-            <div className="text-xs font-semibold text-slate-700">
-              Select an authentic verified medical prescription to test OCR &amp; generic bioequivalence matching:
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {Object.entries(SAMPLE_PRESCRIPTIONS).map(([key, item]) => (
-                <div
-                  key={key}
-                  onClick={() => handleSelectSample(key)}
-                  className="p-3.5 rounded-xl border border-slate-200 hover:border-sky-500 hover:bg-sky-50/50 transition cursor-pointer text-left space-y-2 group shadow-2xs"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center font-serif">
-                      Rx
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold border border-emerald-200">
-                      {item.confidence}% Match
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="font-bold text-slate-900 text-xs group-hover:text-sky-800 transition line-clamp-1">
-                      {item.doctorName}
-                    </div>
-                    <div className="text-[11px] text-slate-500 line-clamp-1">{item.clinicName}</div>
-                  </div>
-
-                  <div className="pt-1 border-t border-slate-100 text-[11px] text-slate-600 space-y-0.5 font-mono">
-                    {item.medicines.map((m) => (
-                      <div key={m.id} className="truncate">
-                        • {m.brandedName}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="text-[10px] text-sky-700 font-bold flex items-center gap-0.5 pt-1">
-                    <span>Load &amp; Verify</span>
-                    <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* SCANNING PROGRESS OVERLAY / SPINNER */}

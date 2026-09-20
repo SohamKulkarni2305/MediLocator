@@ -13,6 +13,7 @@ export const useUploadPrescription = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
+      window.dispatchEvent(new Event('prescriptions:changed'));
     },
   });
 };

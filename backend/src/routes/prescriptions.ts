@@ -6,6 +6,7 @@ import { validateRequest } from '../middleware/validate';
 import { RejectPrescriptionSchema, ApprovePrescriptionSchema } from '../lib/zod-schemas';
 import { emitEvent } from './events';
 import multer from 'multer';
+import crypto from 'node:crypto';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
@@ -33,23 +34,60 @@ router.post('/', requireAuth, requireRole(['CUSTOMER']), upload.single('file'), 
       return res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'File is required unless syncing via ABHA' } });
     }
 
-    const prescription = await prisma.prescription.create({
-      data: {
-        rxNumber: `RX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-        patientId: req.user!.id,
-        fileName: file ? file.originalname : 'abha_sync_doc.pdf',
-        fileSize: file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown',
-        source: req.body.source || 'file',
-        sourceLabel: req.body.source === 'camera' ? 'Camera Capture' : req.body.source === 'abha_sync' ? 'ABHA Sync' : 'Device Document',
-        uploadDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        uploadTimestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) + ' IST',
-        doctorName: req.body.doctorName || 'Unknown Doctor',
-        doctorSpecialty: 'General Practice',
-        doctorReg: 'Unknown Registration',
-        clinicName: req.body.clinicName || 'Unknown Clinic',
-        clinicLocation: 'Unknown Location',
-        auditHash: '0x' + Math.random().toString(16).slice(2, 34), // Mock hash
-      },
+    const patient = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!patient) return res.status(401).json({ error: { code: 'USER_NOT_FOUND', message: 'Patient account not found' } });
+
+    const now = new Date();
+    const uploadDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const uploadTimestamp = `${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} IST`;
+    const rxNumber = `RX-${now.getFullYear()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+    const prescription = await prisma.$transaction(async (tx) => {
+      const created = await tx.prescription.create({
+        data: {
+          rxNumber,
+          patientId: patient.id,
+          fileName: file ? file.originalname : 'abha_sync_doc.pdf',
+          fileSize: file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown',
+          source: req.body.source || 'file',
+          sourceLabel: req.body.source === 'camera' ? 'Camera Capture' : req.body.source === 'abha_sync' ? 'ABHA Sync' : 'Device Document',
+          uploadDate,
+          uploadTimestamp,
+          doctorName: 'Pending document extraction',
+          doctorSpecialty: 'Pending document extraction',
+          doctorReg: 'Pending verification',
+          clinicName: 'Pending document extraction',
+          clinicLocation: 'Pending document extraction',
+          auditHash: crypto.createHash('sha256').update(`${patient.id}:${rxNumber}:${file?.originalname || 'abha'}`).digest('hex'),
+        },
+      });
+
+      await tx.pharmacistCase.create({
+        data: {
+          caseNumber: `CASE-${now.getFullYear()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
+          prescriptionId: created.id,
+          patientName: patient.name,
+          patientAge: 0,
+          patientGender: 'Not provided',
+          mrn: patient.mrn || 'Not provided',
+          bp: 'Not provided',
+          hba1c: 'Not provided',
+          condition: 'Awaiting prescription review',
+          allergies: 'Not provided',
+          prescriberName: 'Pending document extraction',
+          prescriberDegree: 'Pending verification',
+          clinicName: 'Pending document extraction',
+          clinicAddress: 'Pending document extraction',
+          clinicLicense: 'Pending verification',
+          prescriberReg: 'Pending verification',
+          status: 'Queued',
+        },
+      });
+
+      return tx.prescription.findUnique({
+        where: { id: created.id },
+        include: { medicines: true, pharmacistSignoff: true },
+      });
     });
 
     res.status(201).json(prescription);
